@@ -1,0 +1,16 @@
+login
+	if type=applicant
+		add/edit/view their own [proposal]
+		view/add [comment] of their own praposal
+		view [decision] of their own praposal
+	
+	if type=reviewer
+		view [proposal] if they are to make decision
+		view/edit their approval field of [decision]
+		view/add [comment] on proposal if they are to make decision
+
+	if type=src chairman
+		add/view/delete all fields of [decision] but can not edit approval field
+
+	if type=ec chairman
+		add/view/delete all fields of [decision] but can not edit approval field
