@@ -28,3 +28,13 @@ git push -u origin master
 git branch home
 git checkout home
 
+make changes as required
+git add XYZ if required
+git commit
+git status (as often required)
+
+git remote add home https://github.com/nishishailesh/research.git
+git remote  -v
+
+git push home (to push to home branch on remote)
+
