@@ -25,7 +25,31 @@ git commit -m "first commit"
 git remote add origin https://github.com/nishishailesh/research.git
 git push -u origin master
 
-something specialy here in 
 git branch home
 git checkout home
+
+make changes as required
+git add XYZ if required
+git commit
+git status (as often required)
+
+git remote add home https://github.com/nishishailesh/research.git
+git remote  -v
+
+git push home (to push current branch to home remote)
+
+======Steps to pull a specific branch from github======================
+
+cd research.college/
+git init
+git remote add xyz https://github.com/nishishailesh/research
+git remote -r
+git fetch xyz
+git branch -r
+git branch local.home xyz/home
+git checkout local.home
+
+
+
+
 
