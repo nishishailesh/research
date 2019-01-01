@@ -36,7 +36,7 @@ git status (as often required)
 git remote add home https://github.com/nishishailesh/research.git
 git remote  -v
 
-git push home (to push to home branch on remote)
+git push home (to push current brach to home remote)
 
 ======Steps to pull a specific branch from github======================
 
