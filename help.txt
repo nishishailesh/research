@@ -38,3 +38,18 @@ git remote  -v
 
 git push home (to push to home branch on remote)
 
+======Steps to pull a specific branch from github======================
+
+cd research.college/
+git init
+git remote add xyz https://github.com/nishishailesh/research
+git remote -r
+git fetch xyz
+git branch -r
+git branch local.home xyz/home
+git checkout local.home
+
+
+
+
+
