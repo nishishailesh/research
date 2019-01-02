@@ -49,7 +49,13 @@ git branch -r
 git branch local.home xyz/home
 git checkout local.home
 
+======define remote research, move coll branch to master====
+research is local short form for remote repository
+coll is current branch name (pulled before, then changed)
+master is remote branch name
+command is:
 
+git push research coll:master
 
 
 
