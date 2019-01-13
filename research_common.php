@@ -79,8 +79,9 @@ function list_application_for_reviewer($link,$status,$action='none',$reviewer_id
 						and
 					status=\''.$status.'\'
 						and
-					decision.reviewer_id=\''.$reviewer_id.'\'';
-					
+					decision.reviewer_id=\''.$reviewer_id.'\'
+					';
+	//echo $sql;				
 	$result=run_query($link,'research',$sql);
 	echo '<table class="table table-striped">
 			<tr><th colspan=10>List of research application with current status of <span class=bg-danger>'.$status.'</span></th></tr>
@@ -114,6 +115,8 @@ function list_application_for_reviewer($link,$status,$action='none',$reviewer_id
 	}
 	echo '</table>';
 }
+
+
 
 function list_single_application($link,$id)
 {
@@ -185,6 +188,7 @@ function display_comment($link,$proposal_id)
 	echo '<div class="jumbotron" >';
 	echo '<h3 class="bg-warning">Comments</h3>';
 
+	$applicant_id=get_applicant_id($link,$proposal_id);
 	
 	$result=run_query($link,'research','select * from comment where proposal_id=\''.$proposal_id.'\' order by date_time');
 	while($ar=get_single_row($result))
@@ -196,7 +200,11 @@ function display_comment($link,$proposal_id)
 		echo '	<h3 class="d-inline"><span class="badge badge-primary ">'.$ri['name'].'</span></h3>
 				<h4 class="d-inline"><span class="badge badge-secondary">'.$ri['department'].'</span></h4>
 				<h5 class="d-inline"><span class="badge badge-info rounded-circle">'.$ri['type'].'</span></h5>';
-		echo 	'<span class="d-block pl-5 text-primary"><pre>'.$ar['comment'].'</pre></span>';
+		if($ar['reviewer_id']==$applicant_id)
+		{
+			echo '<h5 class="d-inline"><span class="badge badge-danger rounded-circle">APPLICANT</span></h5>';
+		}		
+		echo 	'<span class="d-block pl-5 text-primary"><pre>'.htmlspecialchars($ar['comment']).'</pre></span>';
 
 		echo '<mark class="font-italic pl-5 small"> Commented on '.$ar['date_time'].'</mark>
 			';
@@ -274,12 +282,15 @@ function approve($link,$proposal_id)
 
 function pending_review($link,$proposal_id,$reviewer_type)
 {	
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	
 	$sql='select count(id) as pending_review from user,decision 
 			where 
 				proposal_id=\''.$proposal_id.'\' and 
 				user.id=decision.reviewer_id and
 				approval=0 and
-				user.type=\''.$reviewer_type.'\'';
+				user.type=\''.$reviewer_type.'\' and
+				user.id!=\''.$applicant_id.'\'';
 				
 	$result_selected=run_query($link,'research',$sql);
 	$ar=get_single_row($result_selected);
@@ -339,6 +350,40 @@ function view_entire_application($link,$proposal_id)
 	echo '</div>';//for tab-content
 	
 }
+
+
+function view_entire_application_for_applicant($link,$proposal_id)
+{
+	echo '<ul class="nav nav-pills">
+		<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#application">Application</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#edit">Edit</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#review_status">Review Status</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#comment">Comments (SRC)</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#make_comment">Make Comment (SRC)</a></li>
+	</ul>';
+	
+	echo '<div class="tab-content">';	
+
+		echo '<div class="jumbotron tab-pane container active" id=application>';
+			list_single_application_with_all_fields($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=edit>';
+			edit_application($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=review_status>';
+			show_review_status($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=comment>';
+			display_comment($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=make_comment>';
+			make_comment($link,$proposal_id);
+		echo '</div>';
+	echo '</div>';//for tab-content
+	
+}
+
+
 function get_application_status($link,$id)
 {
 	$result=run_query($link,'research','select * from proposal where id=\''.$id.'\'');
@@ -352,13 +397,21 @@ function set_application_status($link,$id,$status)
 	return $result;
 }
 
+
+function get_applicant_id($link,$proposal_id)
+{
+	$result=run_query($link,'research','select * from proposal where id=\''.$proposal_id.'\'');
+	$ar=get_single_row($result);
+	return $ar['applicant_id'];
+}
+
 function get_selected_srcm_reviewer($link,$proposal_id)
 {
 	$sql='select * from user,decision 
 			where 
 				proposal_id=\''.$proposal_id.'\' and 
 				user.id=decision.reviewer_id and
-				user.type=\'srcm\'';
+				(user.type=\'srcm\' or user.type=\'srcms\' )';
 				
 	$result_selected=run_query($link,'research',$sql);
 	
@@ -378,7 +431,8 @@ function count_selected_srcm_reviewer($link,$proposal_id)
 			where 
 				proposal_id=\''.$proposal_id.'\' and 
 				user.id=decision.reviewer_id and
-				user.type=\'srcm\'';
+				(user.type=\'srcm\' or user.type=\'srcms\' )';
+	//applicant is not counted
 				
 	$result_selected=run_query($link,'research',$sql);
 	$ar=get_single_row($result_selected);
@@ -387,7 +441,14 @@ function count_selected_srcm_reviewer($link,$proposal_id)
 
 function list_srcm_reviewer($link,$proposal_id)
 {
-	$result=run_query($link,'research','select * from user where type=\'srcm\'');
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	
+	$sql_eligible_reviewer='select * from user where 
+								(type=\'srcm\' or type=\'srcms\')
+								and
+								id!=\''.$applicant_id.'\'';
+								
+	$result=run_query($link,'research',$sql_eligible_reviewer);
 
 	$selected_reviewer=get_selected_srcm_reviewer($link,$proposal_id);
 
@@ -418,7 +479,12 @@ function list_srcm_reviewer($link,$proposal_id)
 
 function show_review_status($link,$proposal_id)
 {
-	$result=run_query($link,'research','select * from decision where proposal_id=\''.$proposal_id.'\'');
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	$sql='select * from decision where 
+				proposal_id=\''.$proposal_id.'\'
+					and
+				reviewer_id!=\''.$applicant_id.'\'';
+	$result=run_query($link,'research',$sql);
 
 
 	echo '<table class="table table-striped table-success">
@@ -439,7 +505,7 @@ function show_review_status($link,$proposal_id)
 
 function save_srcm_reviewer($link,$post)
 {
-	$result=run_query($link,'research','select * from user where type=\'srcm\'');
+	$result=run_query($link,'research','select * from user where type=\'srcm\' || type=\'srcms\'');
 
 	$selected_reviewer=get_selected_srcm_reviewer($link,$post['proposal_id']);
 		
@@ -480,7 +546,7 @@ function save_srcm_reviewer($link,$post)
 				echo '<p><span class="text-danger">...adding user_id='.$ar['id'].' as reviewer for proposal_id='.$post['proposal_id'].'</span>';
 				if(!run_query($link,'research',$sql))
 				{
-					echo '<p><span class="text-danger">'.$sql_del.'</span>';					
+					echo '<p><span class="text-danger">'.$sql.'</span>';					
 				}
 			}
 			else
@@ -538,5 +604,241 @@ function save_srcm_reviewer($link,$post)
 		//}
 	//}
 //}
+
+
+///////Krishna added code///////
+
+
+function list_researcher_application($link)
+{        echo'<form method=post>
+
+		            <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+		             <input type=hidden name=table value="proposal">
+			        <input type=hidden name=field value="application" >
+			        <input type=hidden name=applicantid value=\''.$_SESSION['login'].'\'>
+			        <button class="btn btn-primary"  
+						type=submit
+						name=action
+						value=new_application>New Appliction</button>
+				 </form>';
+	
+	$result=run_query($link,'research','select * from proposal where applicant_id=\''.$_SESSION['login'].'\'');
+		echo '<table class="table table-striped">
+			<tr>
+			<!-- <th>Action</th> -->
+			<th>proposal id</th>
+			<th>proposal_name</th>
+			<th>application</th>
+			<th>reference</th>
+			<th>DateTime</th>
+			<th>Status</th>
+			</tr>';
+	while($ar=get_single_row($result))
+	{
+		$user_info=get_user_info($link,$ar['applicant_id']);
+		echo '<tr>
+		         <!--<td >
+		          <form method=post>
+
+		            <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+		             <input type=hidden name=table value="proposal">
+			        <input type=hidden name=field value="application" >
+			        <input type=hidden name=primary_key value="id">
+			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'> 
+			         <button class="btn btn-primary"  
+						type=submit
+						name=action
+						value=edit_application>E</button>
+				 </form>
+				    <form method=post>
+		            <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+		            <input type=hidden name=table value="proposal">
+			        <input type=hidden name=field value="application" >
+			        <input type=hidden name=primary_key value="id">
+			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'> 
+			         <button class="btn btn-danger"  
+						type=submit
+						name=action
+						value=delete_appication>D</button>
+				 </form>
+			   </td>-->
+			   	<td>
+					<form method=post>
+						<button class="btn btn-sm btn-block btn-info" value=manage_application name=action>'.$ar['id'].'</button>
+						<input type=hidden name=proposal_id value=\''.$ar['id'].'\'>
+						<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+					</form>
+				</td>
+				<td>'.$ar['proposal_name'].'</td>
+				<td>
+				    <form method=post action="download.php">
+				    <input type=hidden name=table value="proposal">
+			        <input type=hidden name=field value="application" >
+			        <input type=hidden name=primary_key value="id">
+			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'> 
+				    <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+						<button class="btn btn-primary"  
+						formtarget=_blank
+						type=submit
+						name=action
+						value=download>Download</button>
+					</form>
+				</td>
+				
+				<td>
+				   <form method=post action="download.php">
+				    <input type=hidden name=table value="proposal">
+			        <input type=hidden name=field value="reference" >
+			         <input type=hidden name=primary_key value="id">
+			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'>
+			        <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+					<button class="btn btn-primary"  
+						formtarget=_blank
+						type=submit
+						name=action
+						value=download>Download</button>
+					</form>
+				</td>
+				<td>'.$ar['date_time'].'</td>
+				<td>'.$ar['status'].'</td>
+		</tr>';
+	}
+	echo '</table>';
+	
+}
+
+function get_application_data($link)
+{
+	echo'<form method=post enctype="multipart/form-data"  class="jumbotron">
+	      <table class="table table-striped" width="50%">               
+	     <tr>
+			   <th>Proposal Name</th>
+			   <td><textarea name=proposal_name class="form-control"  placeholder="Enter Proposal Title"></textarea></td>
+			    <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+		       <input type=hidden name=applicant_id value=\''.$_SESSION['login'].'\'>
+			</tr>
+			<tr>
+			   <th>Application</th>
+			   <td><input class="form-control" type="file" name=application></td>
+			</tr>
+			<tr>
+			    <th>Reference</th>
+			    <td><input class="form-control" type="file" name=reference></td>
+			</tr>
+			<tr><td></td>
+			  <td>
+			  <button class="btn btn-primary"  
+						type=submit
+						name=action
+						value=insert_application>Save</button></td>
+						</tr>
+				</table>
+				
+		</form>';
+	
+}
+
+function file_to_str($link,$file)
+{
+	if($file['size']>0)
+	{
+		$fd=fopen($file['tmp_name'],'r');
+		$size=$file['size'];
+		$str=fread($fd,$size);
+		return my_safe_string($link,$str);
+	}
+	else
+	{
+		return false;
+	}
+}
+
+function insert_application($link,$aid,$pname,$afile, $rfile)
+{
+	$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status) 
+	          VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
+			
+	$result=run_query($link,'research',$sql);
+    if($result==false)
+	{
+		echo '<h3 style="color:red;">No record inserted</h3>';
+	}
+	else
+	{
+		echo '<h3 style="color:green;">'.$result.' record inserted</h3>';
+	}
+	return TRUE;
+}
+
+function insert_reviewer($link,$proposal_id,$reviewer_id)
+{
+	$sql='insert into decision values(
+	\''.$proposal_id.'\',
+	\''.$reviewer_id.'\',
+	\'0\')';
+	//echo $sql.'<br>';
+	echo '<p><span class="text-danger">...adding user_id='.$reviewer_id.' as reviewer for proposal_id='.$proposal_id.'</span>';
+	if(!run_query($link,'research',$sql))
+	{
+		echo '<p><span class="text-danger">'.$sql.'</span>';					
+	}
+}
+
+function edit_application($link,$proposal_id)
+{
+		$result=run_query($link,'research','select * from proposal where id=\''.$proposal_id.'\'');
+		while($ar=get_single_row($result))
+	   {
+		$user_info=get_user_info($link,$ar['applicant_id']);
+	    echo'<form method=post enctype="multipart/form-data">
+				<table class="table table-striped" width="50%">
+    
+					<tr>	 
+					   <th>Proposal Name</th>
+					   <td><textarea class="form-control" type=text name=proposal_name >'.$ar['proposal_name'].'</textarea></td>
+					   <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+					   <input type=hidden name=applicantid value=\''.$_SESSION['login'].'\'>
+					   <input type=hidden name=id value='.$ar['id'].'>
+					</tr>
+					<tr>
+					   <th>Application</th>
+					   <td><input class="form-control" style="width:100%" type="file" name="application"></td>
+					</tr>
+					<tr>
+						<th>Reference</th>
+						<td><input class="form-control" style="width:100%" type="file" name="reference"></td>
+					</tr>
+					<tr>
+						<td></td>
+						<td>
+							<button class="btn btn-primary"  
+								type=submit
+								name=action
+								value=update_application>Update</button>
+						</td>
+					</tr>
+				</table>
+		</form>';
+	}
+	
+}
+
+function save_application_field($link,$aid,$field,$value)
+{
+	
+	$sql='UPDATE proposal SET 
+		`'.$field.'` =\''.$value.'\'
+		WHERE id=\''.$aid.'\'';
+	$result=run_query($link,'research',$sql);
+    //return TRUE;
+	if($result==false)
+	{
+		echo '<h3 style="color:red;">'.$field.' not updated</h3>';
+	}
+	else
+	{
+		echo '<h3 style="color:green;">'.$field.' updated</h3>';
+	}
+}
 
 ?>
