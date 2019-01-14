@@ -203,8 +203,16 @@ function display_comment($link,$proposal_id)
 		if($ar['reviewer_id']==$applicant_id)
 		{
 			echo '<h5 class="d-inline"><span class="badge badge-danger rounded-circle">APPLICANT</span></h5>';
-		}		
-		echo 	'<span class="d-block pl-5 text-primary"><pre>'.htmlspecialchars($ar['comment']).'</pre></span>';
+		}
+			
+		if(substr($ar['comment'],-10)=='[APPROVED]')
+		{
+			echo 	'<pre><span class="d-block pl-5 text-success">'.htmlspecialchars($ar['comment']).'<h5>&#10004;&#10004;&#10004;</h5></span></pre>';
+		}
+		else
+		{
+			echo 	'<pre><span class="d-block pl-5 ">'.htmlspecialchars($ar['comment']).'</span></pre>';
+		}
 
 		echo '<mark class="font-italic pl-5 small"> Commented on '.$ar['date_time'].'</mark>
 			';

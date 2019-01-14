@@ -10,7 +10,7 @@ require_once 'research_common.php';
 
 	$user_info=get_user_info($link,$_SESSION['login']);
 	//my_print_r($user_info);
-	echo '<table class="table table-dark"><tr><td>'.$user_info['id'].'</td><td>'.$user_info['name'].'</td><td>'.$user_info['type'].'</td><td>'.$user_info['department'].'</td></tr></table>';
+	echo '<table class="table table-dark"><tr><td>'.$user_info['id'].'</td><td>'.$user_info['name'].'</td><td>'.$user_info['type'].'</td><td>'.$user_info['department'].'</td><td>'.$user_info['email'].'</td><td>'.$user_info['mobile'].'</td></tr></table>';
 
 	//all three can save comments
 	if($_POST['action']=='save_comment')
@@ -191,7 +191,7 @@ require_once 'research_common.php';
 
 //////////////user code ends////////////////
 tail();
-my_print_r($_POST);
+//my_print_r($_POST);
 //my_print_r($_FILES);
 //my_print_r($_SESSION);
 ?>
