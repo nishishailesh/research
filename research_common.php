@@ -280,7 +280,7 @@ function approve($link,$proposal_id)
 	echo '</div>';
 }
 
-function pending_review($link,$proposal_id,$reviewer_type)
+function pending_review($link,$proposal_id)
 {	
 	$applicant_id=get_applicant_id($link,$proposal_id);
 	
@@ -289,7 +289,6 @@ function pending_review($link,$proposal_id,$reviewer_type)
 				proposal_id=\''.$proposal_id.'\' and 
 				user.id=decision.reviewer_id and
 				approval=0 and
-				user.type=\''.$reviewer_type.'\' and
 				user.id!=\''.$applicant_id.'\'';
 				
 	$result_selected=run_query($link,'research',$sql);
@@ -755,9 +754,9 @@ function file_to_str($link,$file)
 
 function insert_application($link,$aid,$pname,$afile, $rfile)
 {
-	$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status) 
-	          VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
-			
+	$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status)
+	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
+
 	$result=run_query($link,'research',$sql);
     if($result==false)
 	{
@@ -766,6 +765,12 @@ function insert_application($link,$aid,$pname,$afile, $rfile)
 	else
 	{
 		echo '<h3 style="color:green;">'.$result.' record inserted</h3>';
+		insert_reviewer(
+					$link,
+					last_autoincrement_insert($link),
+					get_applicant_id($link,last_autoincrement_insert($link))
+				);
+
 	}
 	return TRUE;
 }
@@ -777,10 +782,13 @@ function insert_reviewer($link,$proposal_id,$reviewer_id)
 	\''.$reviewer_id.'\',
 	\'0\')';
 	//echo $sql.'<br>';
-	echo '<p><span class="text-danger">...adding user_id='.$reviewer_id.' as reviewer for proposal_id='.$proposal_id.'</span>';
 	if(!run_query($link,'research',$sql))
 	{
 		echo '<p><span class="text-danger">'.$sql.'</span>';					
+	}
+	else
+	{
+		echo '<p><span class="text-danger">...adding user_id='.$reviewer_id.' as reviewer for proposal_id='.$proposal_id.'</span>';
 	}
 }
 

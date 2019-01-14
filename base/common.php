@@ -93,6 +93,16 @@ function get_single_row($result)
 		}
 }
 
+
+function my_safe_string($link,$str)
+{
+	return mysqli_real_escape_string($link,$str);
+} 
+
+function  last_autoincrement_insert($link)
+{
+	return mysqli_insert_id($link);
+}
 ////////////////////////////////////////
 
 ?>
