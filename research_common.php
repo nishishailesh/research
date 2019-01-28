@@ -139,12 +139,13 @@ function list_single_application($link,$id)
 
 
 
-function echo_download_button($table,$field,$primary_key,$primary_key_value)
+function echo_download_button($table,$field,$primary_key,$primary_key_value,$postfix='')
 {
 	echo '<form method=post action=download.php>
 			<input type=hidden name=table value=\''.$table.'\'>
 			<input type=hidden name=field value=\''.$field.'\' >
 			<input type=hidden name=primary_key value=\''.$primary_key.'\'>
+			<input type=hidden name=fname_postfix value=\''.$postfix.'\'>
 			<input type=hidden name=primary_key_value value=\''.$primary_key_value.'\'>
 			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
 			
@@ -179,6 +180,32 @@ function list_single_application_with_all_fields($link,$id)
 		echo '<tr><th>Reference</th><td>';
 		echo_download_button('proposal','reference','id',$id);
 		echo '</td></tr>';	
+	}
+	echo '</table>';
+	list_attachment($link,$id);
+}
+
+function list_attachment($link,$proposal_id)
+{
+	//$result=run_query($link,'research','select * from attachment where proposal_id=\''.$proposal_id.'\' order by date_time');
+	$result=run_query($link,'research','select * from attachment where proposal_id=\''.$proposal_id.'\' order by type,date_time');
+	echo '<table class="table table-warning table-bordered">';
+
+	$prev_type='';
+	while($ar=get_single_row($result))
+	{
+		if($prev_type!=$ar['type'])
+		{
+			echo '<tr><th class="bg-info" colspan=3>'.$ar['type'].'</th></tr>';
+		}
+		echo '<tr>
+				<td>'.$ar['type'].'</td>
+				<td>'.$ar['date_time'].'</td>';
+		echo '<td>';
+		//function echo_download_button($table,$field,$primary_key,$primary_key_value)
+		echo_download_button('attachment','attachment','id',$ar['id'],'('.$ar['type'].')');
+		echo '</td></tr>';
+		$prev_type=$ar['type'];
 	}
 	echo '</table>';
 }
