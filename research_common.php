@@ -17,7 +17,7 @@ function list_application_for_srcm_assignment($link)
 {
 	$result=run_query($link,'research','select * from proposal where status=\'001.applied\'');
 	echo '<table class="table table-striped"><tr><th colspan=10>List of research application where reviewer assignment is incomplate</th></tr>
-			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Proposal</th><th>DateTime</th><th>Status</th></tr>';
+			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
 		$user_info=get_user_info($link,$ar['applicant_id']);
@@ -42,7 +42,7 @@ function list_application_status($link,$status,$action='none',$message='')
 {
 	$result=run_query($link,'research','select * from proposal where status=\''.$status.'\'');
 	echo '<table class="table table-striped"><tr><th colspan=10>List of research application with current status of <span class=bg-danger>'.$status.'</span></th></tr>
-			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Proposal</th><th>DateTime</th><th>Status</th></tr>';
+			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
 		$user_info=get_user_info($link,$ar['applicant_id']);
@@ -85,7 +85,7 @@ function list_application_for_reviewer($link,$status,$action='none',$reviewer_id
 	$result=run_query($link,'research',$sql);
 	echo '<table class="table table-striped">
 			<tr><th colspan=10>List of research application with current status of <span class=bg-danger>'.$status.'</span></th></tr>
-			<tr><th>proposal id</th><th>Applicant</th><th>Reviewer</th><th>Proposal</th><th>DateTime</th><th>Status</th></tr>';
+			<tr><th>proposal id</th><th>Applicant</th><th>Reviewer</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
 		$user_info=get_user_info($link,$ar['applicant_id']);
@@ -162,7 +162,7 @@ function list_single_application_with_all_fields($link,$id)
 {
 	$result=run_query($link,'research','select * from proposal where id=\''.$id.'\'');
 	echo '<table class="table table-warning table-bordered">
-			<tr><th>proposal id</th><th>applicant id/name/department</th><th>Proposal</th><th>DateTime</th><th>Status</th></tr>';
+			<tr class="bg-success"><th>proposal id</th><th>applicant id/name/department</th><th>Title</th><th>Type</th><th>Guide</th><th>DateTime</th><th>Current Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
 		$user_info=get_user_info($link,$ar['applicant_id']);
@@ -170,16 +170,18 @@ function list_single_application_with_all_fields($link,$id)
 				<td>'.$ar['id'].'</td>
 				<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
 				<td>'.$ar['proposal_name'].'</td>
+				<td>'.$ar['type'].'</td>
+				<td>'.$ar['guide'].'</td>
 				<td>'.$ar['date_time'].'</td>
 				<td>'.$ar['status'].'</td>
 		</tr>';
-		echo '<tr><th>Application</th><td>';
-		echo_download_button('proposal','application','id',$id);
-		echo '</td></tr>';
+		//echo '<tr><th>Application</th><td>';
+		//echo_download_button('proposal','application','id',$id);
+		//echo '</td></tr>';
 		
-		echo '<tr><th>Reference</th><td>';
-		echo_download_button('proposal','reference','id',$id);
-		echo '</td></tr>';	
+		//echo '<tr><th>Reference</th><td>';
+		//echo_download_button('proposal','reference','id',$id);
+		//echo '</td></tr>';	
 	}
 	echo '</table>';
 	list_attachment($link,$id);
@@ -190,19 +192,18 @@ function list_attachment($link,$proposal_id)
 	//$result=run_query($link,'research','select * from attachment where proposal_id=\''.$proposal_id.'\' order by date_time');
 	$result=run_query($link,'research','select * from attachment where proposal_id=\''.$proposal_id.'\' order by type,date_time');
 	echo '<table class="table table-warning table-bordered">';
-
+	echo '<tr class="bg-success"><th>Attachment Type</th><th>Version</th><th>Document</th></tr>';
 	$prev_type='';
 	while($ar=get_single_row($result))
 	{
 		if($prev_type!=$ar['type'])
 		{
-			echo '<tr><th class="bg-info" colspan=3>'.$ar['type'].'</th></tr>';
+			echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
 		}
 		echo '<tr>
 				<td>'.$ar['type'].'</td>
 				<td>'.$ar['date_time'].'</td>';
 		echo '<td>';
-		//function echo_download_button($table,$field,$primary_key,$primary_key_value)
 		echo_download_button('attachment','attachment','id',$ar['id'],'('.$ar['type'].')');
 		echo '</td></tr>';
 		$prev_type=$ar['type'];
@@ -391,9 +392,10 @@ function view_entire_application_for_applicant($link,$proposal_id)
 	echo '<ul class="nav nav-pills">
 		<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#application">Application</a></li>
 		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#edit">Edit</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#upload">Upload</a></li>
 		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#review_status">Review Status</a></li>
-		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#comment">Comments (SRC)</a></li>
-		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#make_comment">Make Comment (SRC)</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#comment">Comments</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#make_comment">Make Comment</a></li>
 	</ul>';
 	
 	echo '<div class="tab-content">';	
@@ -403,6 +405,9 @@ function view_entire_application_for_applicant($link,$proposal_id)
 		echo '</div>';
 		echo '<div class="jumbotron tab-pane container" id=edit>';
 			edit_application($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=upload>';
+			upload_attachment($link,$proposal_id);
 		echo '</div>';
 		echo '<div class="jumbotron tab-pane container" id=review_status>';
 			show_review_status($link,$proposal_id);
@@ -658,44 +663,17 @@ function list_researcher_application($link)
 	
 	$result=run_query($link,'research','select * from proposal where applicant_id=\''.$_SESSION['login'].'\'');
 		echo '<table class="table table-striped">
+			<tr><th colspan=10 class="text-center">Click respective <span class="badge badge-secondary">Proposal ID</span> to Edit and upload documents</th></tr>
 			<tr>
-			<!-- <th>Action</th> -->
-			<th>proposal id</th>
-			<th>proposal_name</th>
-			<th>application</th>
-			<th>reference</th>
+			<th>Proposal ID</th>
+			<th>Title</th>
 			<th>DateTime</th>
-			<th>Status</th>
+			<th>Current Status</th>
 			</tr>';
 	while($ar=get_single_row($result))
 	{
 		$user_info=get_user_info($link,$ar['applicant_id']);
 		echo '<tr>
-		         <!--<td >
-		          <form method=post>
-
-		            <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
-		             <input type=hidden name=table value="proposal">
-			        <input type=hidden name=field value="application" >
-			        <input type=hidden name=primary_key value="id">
-			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'> 
-			         <button class="btn btn-primary"  
-						type=submit
-						name=action
-						value=edit_application>E</button>
-				 </form>
-				    <form method=post>
-		            <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
-		            <input type=hidden name=table value="proposal">
-			        <input type=hidden name=field value="application" >
-			        <input type=hidden name=primary_key value="id">
-			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'> 
-			         <button class="btn btn-danger"  
-						type=submit
-						name=action
-						value=delete_appication>D</button>
-				 </form>
-			   </td>-->
 			   	<td>
 					<form method=post>
 						<button class="btn btn-sm btn-block btn-info" value=manage_application name=action>'.$ar['id'].'</button>
@@ -704,35 +682,6 @@ function list_researcher_application($link)
 					</form>
 				</td>
 				<td>'.$ar['proposal_name'].'</td>
-				<td>
-				    <form method=post action="download.php">
-				    <input type=hidden name=table value="proposal">
-			        <input type=hidden name=field value="application" >
-			        <input type=hidden name=primary_key value="id">
-			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'> 
-				    <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
-						<button class="btn btn-primary"  
-						formtarget=_blank
-						type=submit
-						name=action
-						value=download>Download</button>
-					</form>
-				</td>
-				
-				<td>
-				   <form method=post action="download.php">
-				    <input type=hidden name=table value="proposal">
-			        <input type=hidden name=field value="reference" >
-			         <input type=hidden name=primary_key value="id">
-			        <input type=hidden name=primary_key_value value=\''.$ar['id'].'\'>
-			        <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
-					<button class="btn btn-primary"  
-						formtarget=_blank
-						type=submit
-						name=action
-						value=download>Download</button>
-					</form>
-				</td>
 				<td>'.$ar['date_time'].'</td>
 				<td>'.$ar['status'].'</td>
 		</tr>';
@@ -744,32 +693,40 @@ function list_researcher_application($link)
 function get_application_data($link)
 {
 	echo'<form method=post enctype="multipart/form-data"  class="jumbotron">
+					<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+				   <input type=hidden name=applicant_id value=\''.$_SESSION['login'].'\'>
 	      <table class="table table-striped" width="50%">               
-	     <tr>
-			   <th>Proposal Name</th>
-			   <td><textarea name=proposal_name class="form-control"  placeholder="Enter Proposal Title"></textarea></td>
-			    <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
-		       <input type=hidden name=applicant_id value=\''.$_SESSION['login'].'\'>
+			 <tr>
+				   <th>Proposal Title</th>
+				   <td><textarea name=proposal_name class="form-control"  placeholder="Enter Proposal Title"></textarea></td>
+				   <td>Must be same as what is uploaded in protocol</td>
 			</tr>
+
+			 <tr>
+				   <th>Proposal Type</th>
+				   <td>';
+				   mk_select_from_array('type',$GLOBALS['proposal_type'],'','');
+				   echo '</td>';
+				   echo '<td>Select appropriate type of proposal</td>';
+			echo '</tr>
+			 <tr>
+				   <th>Guide</th>
+				   <td><input name=guide class="form-control"  placeholder="Name of Guide"></td>
+				   <td>Applicable only for proposals from UG and PG students</td>
+			</tr>			
+			
 			<tr>
-			   <th>Application</th>
-			   <td><input class="form-control" type="file" name=application></td>
+					<td></td>
+					<td>
+						<button class="btn btn-primary"  
+							type=submit
+							name=action
+							value=insert_application>Save</button>
+					</td>
 			</tr>
-			<tr>
-			    <th>Reference</th>
-			    <td><input class="form-control" type="file" name=reference></td>
-			</tr>
-			<tr><td></td>
-			  <td>
-			  <button class="btn btn-primary"  
-						type=submit
-						name=action
-						value=insert_application>Save</button></td>
-						</tr>
-				</table>
-				
+			<tr><th class="text-danger" colspan=10>Note: Documents can be uploaded after saving the application</th></tr>
+			</table>
 		</form>';
-	
 }
 
 function file_to_str($link,$file)
@@ -787,12 +744,15 @@ function file_to_str($link,$file)
 	}
 }
 
-function insert_application($link,$aid,$pname,$afile, $rfile)
+function insert_application($link,$aid,$pname,$type,$guide)
 {
-	$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status)
-	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
+	//$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status)
+	// 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
 
+	$sql='INSERT INTO proposal( applicant_id, proposal_name,type,guide,date_time, status)
+	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$type.'\',\''.$guide.'\',now(),\'001.applied\')';
 	$result=run_query($link,'research',$sql);
+	
     if($result==false)
 	{
 		echo '<h3 style="color:red;">No record inserted</h3>';
@@ -843,14 +803,20 @@ function edit_application($link,$proposal_id)
 					   <input type=hidden name=applicantid value=\''.$_SESSION['login'].'\'>
 					   <input type=hidden name=id value='.$ar['id'].'>
 					</tr>
-					<tr>
-					   <th>Application</th>
-					   <td><input class="form-control" style="width:100%" type="file" name="application"></td>
-					</tr>
-					<tr>
-						<th>Reference</th>
-						<td><input class="form-control" style="width:100%" type="file" name="reference"></td>
-					</tr>
+
+					 <tr>
+						   <th>Proposal Type</th>
+						   <td>';
+						   mk_select_from_array('type',$GLOBALS['proposal_type'],'',$ar['type']);
+						   echo '</td>';
+						   echo '<td>Select appropriate type of proposal</td>';
+					echo '</tr>
+					 <tr>
+						   <th>Guide</th>
+						   <td><input name=guide class="form-control"  placeholder="Name of Guide" value=\''.$ar['guide'].'\'></td>
+						   <td>Applicable only for proposals from UG and PG students</td>
+					</tr>			
+			
 					<tr>
 						<td></td>
 						<td>
@@ -876,12 +842,98 @@ function save_application_field($link,$aid,$field,$value)
     //return TRUE;
 	if($result==false)
 	{
-		echo '<h3 style="color:red;">'.$field.' not updated</h3>';
+		//echo '<h5 style="color:red;">'.$field.' not updated</h5>';
 	}
 	else
 	{
-		echo '<h3 style="color:green;">'.$field.' updated</h3>';
+		//echo '<h5 style="color:green;">'.$field.' updated</h5>';
 	}
 }
 
+
+function upload_attachment($link,$proposal_id)
+{
+	echo'<form method=post enctype="multipart/form-data">
+					   <input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+					   <input type=hidden name=applicantid value=\''.$_SESSION['login'].'\'>
+					   <input type=hidden name=proposal_id value=\''.$proposal_id.'\'>
+				<table class="table table-striped">
+					<tr>	 
+					   <th>File to upload</th>
+					   <td><input type=file name=attachment></td>
+					   <td>Only PDF files are <20 MB are accepted</td>
+					</tr>
+
+					 <tr>
+						   <th>Type</th>
+						   <td>';
+						   mk_select_from_array('type',$GLOBALS['attachment_type']);
+						   echo '</td>';
+						   echo '<td>Select appropriate type of document</td>';
+
+					echo '<tr>
+							<td colspan=3>
+							<button class="btn btn-primary"  
+								type=submit
+								name=action
+								value=upload_attachment>Upload</button>
+							</td>
+						</tr>';
+
+				echo '</table>
+	</form>';	
+	
+}
+
+
+
+function save_attachement($link,$proposal_id,$type,$blob)
+{
+	if(strlen($type)==0)
+	{
+		echo '<h5 style="color:red;">nothing uploaded. upload type is required.  Retry with selection of upload type</h5>';
+		return false;
+	}
+	
+	$sql='insert into attachment ( proposal_id, 	type 	,date_time 	,attachment)
+			values
+				(
+					\''.$proposal_id.'\',
+					\''.$type.'\',
+					now(),
+					\''.$blob.'\'
+				)';
+		
+	$result=run_query($link,'research',$sql);
+    //return TRUE;
+	if($result==false)
+	{
+		echo '<h5 style="color:red;"> nothing updated.too big??</h5>';
+		return false;
+	}
+	else
+	{
+		echo '<h5 style="color:green;">uploaded. see application tab</h5>';
+		return true;
+	}
+}
+
+function mk_select_from_array($name, $select_array,$disabled='',$default='')
+{	
+	echo '<select  '.$disabled.' name=\''.$name.'\'>';
+	foreach($select_array as $key=>$value)
+	{
+				//echo $default.'?'.$value;
+		if($value==$default)
+		{
+			echo '<option  selected > '.$value.' </option>';
+		}
+		else
+		{
+			echo '<option > '.$value.' </option>';
+		}
+	}
+	echo '</select>';	
+	return TRUE;
+}
 ?>

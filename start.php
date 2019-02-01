@@ -10,7 +10,16 @@ require_once 'research_common.php';
 
 	$user_info=get_user_info($link,$_SESSION['login']);
 	//my_print_r($user_info);
-	echo '<table class="table table-dark"><tr><td>'.$user_info['id'].'</td><td>'.$user_info['name'].'</td><td>'.$user_info['type'].'</td><td>'.$user_info['department'].'</td><td>'.$user_info['email'].'</td><td>'.$user_info['mobile'].'</td></tr></table>';
+	echo '<table class="table table-dark">
+			<tr>
+				<td>'.$user_info['id'].'</td>
+				<td>'.$user_info['name'].'</td>
+				<td>'.$user_info['type'].'</td>
+				<td>'.$user_info['department'].'</td>
+				<td>'.$user_info['email'].'</td>
+				<td>'.$user_info['mobile'].'</td>
+			</tr>
+		</table>';
 
 	//all three can save comments
 	if($_POST['action']=='save_comment')
@@ -148,36 +157,39 @@ require_once 'research_common.php';
 	    
 	    if($_POST['action']=='insert_application')
         {
-			$app_blob=file_to_str($link,$_FILES['application']);
-			if($app_blob==false){$app_blob='';}
+			//$app_blob=file_to_str($link,$_FILES['application']);
+			//if($app_blob==false){$app_blob='';}
 
-			$ref_blob=file_to_str($link,$_FILES['reference']);
-			if($ref_blob==false){$ref_blob='';}
-			insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$app_blob,$ref_blob);
+			//$ref_blob=file_to_str($link,$_FILES['reference']);
+			//if($ref_blob==false){$ref_blob='';}
+			//insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$app_blob,$ref_blob);
+			insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$_POST['type'],$_POST['guide']);
 			$_SESSION['dsp']='researcher';
 	    }
 
 
 	    if($_POST['action']=='update_application')
         {
-			$app_blob=file_to_str($link,$_FILES['application']);
-			$ref_blob=file_to_str($link,$_FILES['reference']);
+			//$app_blob=file_to_str($link,$_FILES['application']);
+			//$ref_blob=file_to_str($link,$_FILES['reference']);
 
 			save_application_field($link,$_POST['id'],'proposal_name',$_POST['proposal_name']); 
-			if(strlen($app_blob)!=0)
-			{ 
-				save_application_field($link,$_POST['id'],'application',$app_blob);	   
-			}
+			save_application_field($link,$_POST['id'],'type',$_POST['type']); 
+			save_application_field($link,$_POST['id'],'guide',$_POST['guide']); 
 
-			if(strlen($ref_blob)!=0)
-			{ 
-				save_application_field($link,$_POST['id'],'reference',$ref_blob);	   
-			}
 			
 			view_entire_application_for_applicant($link,$_POST['id']);
 			$_SESSION['dsp']='researcher';
 	    }
-	    
+
+	    if($_POST['action']=='upload_attachment')
+        {
+			$blob=file_to_str($link,$_FILES['attachment']);
+			save_attachement($link,$_POST['proposal_id'],$_POST['type'],$blob);		
+			view_entire_application_for_applicant($link,$_POST['proposal_id']);
+			$_SESSION['dsp']='researcher';
+	    }
+	    	    
 		if($_POST['action']=='delete_appication')
         	{
 				delete($link,'research',$_POST['table'],$_POST['primary_key'],$_POST['primary_key_value']);
@@ -191,8 +203,8 @@ require_once 'research_common.php';
 
 //////////////user code ends////////////////
 tail();
-//my_print_r($_POST);
-//my_print_r($_FILES);
+my_print_r($_POST);
+my_print_r($_FILES);
 //my_print_r($_SESSION);
 ?>
 <script>

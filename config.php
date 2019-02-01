@@ -10,4 +10,29 @@ $GLOBALS['expirydate_field']='expirydate';
 
 //////Project specific globals
 $GLOBALS['required_srcm_reviewer']=3;
+
+
+$GLOBALS['proposal_type']=array(
+									'Dissertation',
+									'PhD',
+									'Poster',
+									'Paper',
+									'Clinical Trial',
+									'Other'
+								);
+
+
+$GLOBALS['attachment_type']=array(
+									'',
+									'protocol',
+									'Permission from MS',
+									'Permission from Dean',
+									'Permission from collaborator',
+									'Permission from resource-site',
+									'Undertakings',
+									'Covering Letter',
+									'Patient information consent form',
+									'Patient information sheet',
+									'Other'
+								);
 ?>
