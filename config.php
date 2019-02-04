@@ -24,7 +24,7 @@ $GLOBALS['proposal_type']=array(
 
 $GLOBALS['attachment_type']=array(
 									'',
-									'protocol',
+									'Protocol',
 									'Permission from MS',
 									'Permission from Dean',
 									'Permission from collaborator',

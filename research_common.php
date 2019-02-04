@@ -74,12 +74,15 @@ function list_application_status($link,$status,$action='none',$message='')
 
 function list_application_for_reviewer($link,$status,$action='none',$reviewer_id)
 {
+	
 	$sql='select * from proposal,decision where 
 					proposal.id=decision.proposal_id
 						and
 					status=\''.$status.'\'
 						and
 					decision.reviewer_id=\''.$reviewer_id.'\'
+						and
+					applicant_id!=\''.$reviewer_id.'\'
 					';
 	//echo $sql;				
 	$result=run_query($link,'research',$sql);
@@ -168,7 +171,19 @@ function list_single_application_with_all_fields($link,$id)
 		$user_info=get_user_info($link,$ar['applicant_id']);
 		echo '<tr>
 				<td>'.$ar['id'].'</td>
-				<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
+				<td>
+					<div  data-toggle="modal" data-target="#applicant_info_popup">
+						<span class="text-primary">'.$ar['applicant_id'].'</span>/
+						<span class="text-danger">'.$user_info['name'].'</span>/
+						<span class="text-primary">'.$user_info['department'].'</span>
+					</div>
+					<div class="modal" id="applicant_info_popup">
+					
+					<div class="modal-content">
+					<div class="modal-body">';
+						echo_applicant_info_popup($link,$ar['applicant_id']);
+					echo '</div></div></div>
+				</td>
 				<td>'.$ar['proposal_name'].'</td>
 				<td>'.$ar['type'].'</td>
 				<td>'.$ar['guide'].'</td>
@@ -190,25 +205,39 @@ function list_single_application_with_all_fields($link,$id)
 function list_attachment($link,$proposal_id)
 {
 	//$result=run_query($link,'research','select * from attachment where proposal_id=\''.$proposal_id.'\' order by date_time');
-	$result=run_query($link,'research','select * from attachment where proposal_id=\''.$proposal_id.'\' order by type,date_time');
-	echo '<table class="table table-warning table-bordered">';
-	echo '<tr class="bg-success"><th>Attachment Type</th><th>Version</th><th>Document</th></tr>';
-	$prev_type='';
-	while($ar=get_single_row($result))
+
+		echo '<table class="table table-warning table-bordered">';
+		echo '<tr class="bg-success"><th>Attachment Type</th><th>Version</th><th>Document</th></tr>';	
+foreach($GLOBALS['attachment_type'] as $key =>$value)
 	{
-		if($prev_type!=$ar['type'])
+		$sql='select * from attachment 
+				where 
+					proposal_id=\''.$proposal_id.'\' 
+					and
+					type=\''.$value.'\' 
+				order by
+					date_time';
+					
+		$result=run_query($link,'research',$sql);
+
+		$prev_type='';
+		while($ar=get_single_row($result))
 		{
-			echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
-		}
-		echo '<tr>
-				<td>'.$ar['type'].'</td>
-				<td>'.$ar['date_time'].'</td>';
-		echo '<td>';
-		echo_download_button('attachment','attachment','id',$ar['id'],'('.$ar['type'].')');
-		echo '</td></tr>';
-		$prev_type=$ar['type'];
+			if($prev_type!=$ar['type'])
+			{
+				echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
+			}
+			echo '<tr>
+					<td>'.$ar['type'].'</td>
+					<td>'.$ar['date_time'].'</td>';
+			echo '<td>';
+			echo_download_button('attachment','attachment','id',$ar['id'],'('.$ar['type'].')');
+			echo '</td></tr>';
+			$prev_type=$ar['type'];
+		}	
 	}
-	echo '</table>';
+		echo '</table>';
+	
 }
 
 function display_comment($link,$proposal_id)
@@ -446,11 +475,13 @@ function get_applicant_id($link,$proposal_id)
 
 function get_selected_srcm_reviewer($link,$proposal_id)
 {
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	
 	$sql='select * from user,decision 
 			where 
 				proposal_id=\''.$proposal_id.'\' and 
 				user.id=decision.reviewer_id and
-				(user.type=\'srcm\' or user.type=\'srcms\' )';
+				user.id!=\''.$applicant_id.'\'';
 				
 	$result_selected=run_query($link,'research',$sql);
 	
@@ -466,11 +497,14 @@ function get_selected_srcm_reviewer($link,$proposal_id)
 
 function count_selected_srcm_reviewer($link,$proposal_id)
 {
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	
 	$sql='select count(id) as total_selected from user,decision 
 			where 
 				proposal_id=\''.$proposal_id.'\' and 
 				user.id=decision.reviewer_id and
-				(user.type=\'srcm\' or user.type=\'srcms\' )';
+				user.id!=\''.$applicant_id.'\'';
+				
 	//applicant is not counted
 				
 	$result_selected=run_query($link,'research',$sql);
@@ -935,5 +969,24 @@ function mk_select_from_array($name, $select_array,$disabled='',$default='')
 	}
 	echo '</select>';	
 	return TRUE;
+}
+
+
+function echo_applicant_info_popup($link,$applicant_id)
+{
+	$user_info=get_user_info($link,$applicant_id);
+	//my_print_r($user_info);
+	echo '<table class="table">
+			<tr>
+				<td>'.$user_info['id'].'</td>
+				<td>'.$user_info['name'].'</td>
+				<td>'.$user_info['type'].'</td>
+				<td>'.$user_info['subtype'].'</td>
+				<td>'.$user_info['year_of_admission'].'</td>
+				<td>'.$user_info['department'].'</td>
+				<td>'.$user_info['email'].'</td>
+				<td>'.$user_info['mobile'].'</td>
+			</tr>
+		</table>';
 }
 ?>

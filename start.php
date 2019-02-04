@@ -15,6 +15,8 @@ require_once 'research_common.php';
 				<td>'.$user_info['id'].'</td>
 				<td>'.$user_info['name'].'</td>
 				<td>'.$user_info['type'].'</td>
+				<td>'.$user_info['subtype'].'</td>
+				<td>'.$user_info['year_of_admission'].'</td>
 				<td>'.$user_info['department'].'</td>
 				<td>'.$user_info['email'].'</td>
 				<td>'.$user_info['mobile'].'</td>
