@@ -77,6 +77,7 @@ require_once 'research_common.php';
 			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Applied</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assigned">Reviewers Assigned (SRC)</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#reviewed">Reviewed (SRC)</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#sent_to_ecms">Sent to ECMS</a></li>
 		</ul>
 		
 		<div class="tab-content">';
@@ -88,9 +89,11 @@ require_once 'research_common.php';
 				list_application_status($link,'010.srcm_assigned','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=reviewed>';
-				list_application_status($link,'020.srcm_approved','send_to_ecms','Send to ecms');
+				list_application_status($link,'020.srcm_approved','send_to_ecms','(Send to ecms)');
 			echo '</div>';
-			
+			echo '<div class="jumbotron tab-pane container" id=sent_to_ecms>';
+				list_application_status($link,'030.sent_to_ecms');
+			echo '</div>';			
 		echo '</div>';//for tab-content
 		
 		echo '</div>';//for srcms collapsible
@@ -138,7 +141,13 @@ require_once 'research_common.php';
 			
 	}
 
-   if($user_info['type']=='researcher' ||$user_info['type']=='srcm' || $user_info['type']=='srcms')
+   if(
+		$user_info['type']=='researcher' ||
+		$user_info['type']=='srcm' || 
+		$user_info['type']=='srcms' ||
+		$user_info['type']=='ecms' ||
+		$user_info['type']=='ecm'
+		)
 	 {
 		echo '<h3 data-toggle="collapse" data-target="#researcher" class="bg-warning">Activity as RESEARCHER</h3>';
 		 
@@ -203,10 +212,121 @@ require_once 'research_common.php';
 		echo '</div>'; //for researcher collapse
 	}
 
+
+if($user_info['type']=='ecms')
+	{	
+		/////
+		//1//
+		/////
+		echo '<h3 data-toggle="collapse" data-target="#ecms" class="bg-warning">Activity as ECMS</h3>';
+		
+		echo '<div id="ecms" class="collapse">';
+		if($_POST['action']=='assign_reviewer')
+		{
+			echo '<div class="jumbotron">';
+				list_single_application($link,$_POST['proposal_id']);
+			//echo '</div>';
+			//echo '<div class="jumbotron">';
+				list_ecm_reviewer($link,$_POST['proposal_id']);
+			echo '</div>';
+			$_SESSION['dsp']='ecms';
+		}
+		if($_POST['action']=='ecms_approve')
+		{
+			set_application_status($link,$_POST['proposal_id'],'070.ecms_approved');
+			$_SESSION['dsp']='ecms';
+		}
+			/////
+		//2//
+		/////
+		if($_POST['action']=='save_reviewer')
+		{
+			save_ecm_reviewer($link,$_POST);
+			//$applicant_id=get_applicant_id($link,$_POST['proposal_id']);
+			
+			//insert_reviewer($link,$_POST['proposal_id'],$applicant_id);
+			
+			echo '<div class="jumbotron">';
+				list_single_application($link,$_POST['proposal_id']);
+				list_ecm_reviewer($link,$_POST['proposal_id']);
+			echo '</div>';
+			$_SESSION['dsp']='ecms';
+		}
+	echo '<ul class="nav nav-pills">
+			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Assign EC Reviewer</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assigned">EC Reviewers Assigned</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#ecms_approve">require ECMS approval</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#print">ECMS Approved</a></li>
+		</ul>
+		
+		<div class="tab-content">';
+		
+			echo '<div class="jumbotron tab-pane container active" id=applied>';
+				list_application_status($link,'030.sent_to_ecms','assign_reviewer');
+			echo '</div>';
+			echo '<div class="jumbotron tab-pane container" id=assigned>';
+				list_application_status($link,'040.ecm_assigned','assign_reviewer');
+			echo '</div>';
+			echo '<div class="jumbotron tab-pane container" id=ecms_approve>';
+				list_application_status($link,'060.ecm_approved','ecms_approve','Approve as ECMS');
+			echo '</div>';
+			echo '<div class="jumbotron tab-pane container" id=print>';
+			//echo 'Print approval here';
+				print_approval_latter($link,'070.ecms_approved','print_approval_latter.php','Print Approval Latter');
+			echo '</div>';
+			
+		echo '</div>';//for tab-content
+		
+		echo '</div>';//for ecms collapsible
+	}
+
+if($user_info['type']=='ecm' || $user_info['type']=='ecms')
+	{	
+
+		/////
+		//3//
+		/////
+		echo '<h3 data-toggle="collapse" data-target="#ecm" class="bg-warning">Activity as ECM</h3>';
+
+		echo '<div class=collapse id=ecm>';
+		
+
+			
+		/////
+		//4//
+		/////		
+		if($_POST['action']=='approve')
+		{
+			save_approve($link,$_SESSION['login'],$_POST['proposal_id'],$_POST['comment']);
+			if(pending_review($link,$_POST['proposal_id'],'ecm')==0)
+			{
+					set_application_status($link,$_POST['proposal_id'],'060.ecm_approved');
+			}
+			$_SESSION['dsp']='ecm';
+		}	
+						
+		//if($_POST['action']=='view_application' || $_POST['action']=='save_comment' ||$_POST['action']=='approve')
+		if($_POST['action']=='view_application' ||$_POST['action']=='approve')
+		{
+			view_entire_application_ecm($link,$_POST['proposal_id']);
+			$_SESSION['dsp']='ecm';
+		}		
+		
+	
+			echo '<div class="jumbotron tab-pane container active" id=assigned>';
+				list_application_for_reviewer($link,'040.ecm_assigned','view_application',$_SESSION['login']);
+			echo '</div>';
+			
+			echo '</div>'; //for ecm collapse
+			
+			
+	}
+	
+
 //////////////user code ends////////////////
 tail();
-my_print_r($_POST);
-my_print_r($_FILES);
+//my_print_r($_POST);
+//my_print_r($_FILES);
 //my_print_r($_SESSION);
 ?>
 <script>
@@ -216,7 +336,6 @@ jQuery(document).ready(
 	{
 		jQuery(xx).addClass("show");
 		//alert(xx);
-
 	}
 );
 </script>

@@ -45,7 +45,7 @@ function list_application_status($link,$status,$action='none',$message='')
 			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
-		$user_info=get_user_info($link,$ar['applicant_id']);
+		//$user_info=get_user_info($link,$ar['applicant_id']);
 		echo '<tr>
 				<td>';
 		
@@ -61,9 +61,14 @@ function list_application_status($link,$status,$action='none',$message='')
 		{
 			echo $ar['id'];
 		}			
-		echo ' </td>
-				<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
-				<td>'.$ar['proposal_name'].'</td>
+		echo ' </td>';
+		
+		echo '<td>';
+			echo_applicant_info_popup($link,get_applicant_id($link,$ar['id']));
+		echo '</td>';
+		
+				//<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
+		echo '<td>'.$ar['proposal_name'].'</td>
 				<td>'.$ar['date_time'].'</td>
 				<td>'.$ar['status'].'</td>
 		</tr>';
@@ -168,35 +173,17 @@ function list_single_application_with_all_fields($link,$id)
 			<tr class="bg-success"><th>proposal id</th><th>applicant id/name/department</th><th>Title</th><th>Type</th><th>Guide</th><th>DateTime</th><th>Current Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
-		$user_info=get_user_info($link,$ar['applicant_id']);
 		echo '<tr>
 				<td>'.$ar['id'].'</td>
-				<td>
-					<div  data-toggle="modal" data-target="#applicant_info_popup">
-						<span class="text-primary">'.$ar['applicant_id'].'</span>/
-						<span class="text-danger">'.$user_info['name'].'</span>/
-						<span class="text-primary">'.$user_info['department'].'</span>
-					</div>
-					<div class="modal" id="applicant_info_popup">
-					
-					<div class="modal-content">
-					<div class="modal-body">';
+				<td>';
 						echo_applicant_info_popup($link,$ar['applicant_id']);
-					echo '</div></div></div>
-				</td>
+				echo '</td>
 				<td>'.$ar['proposal_name'].'</td>
 				<td>'.$ar['type'].'</td>
 				<td>'.$ar['guide'].'</td>
 				<td>'.$ar['date_time'].'</td>
 				<td>'.$ar['status'].'</td>
 		</tr>';
-		//echo '<tr><th>Application</th><td>';
-		//echo_download_button('proposal','application','id',$id);
-		//echo '</td></tr>';
-		
-		//echo '<tr><th>Reference</th><td>';
-		//echo_download_button('proposal','reference','id',$id);
-		//echo '</td></tr>';	
 	}
 	echo '</table>';
 	list_attachment($link,$id);
@@ -729,7 +716,8 @@ function get_application_data($link)
 	echo'<form method=post enctype="multipart/form-data"  class="jumbotron">
 					<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
 				   <input type=hidden name=applicant_id value=\''.$_SESSION['login'].'\'>
-	      <table class="table table-striped" width="50%">               
+	      <table class="table table-striped" width="50%"> 
+	      <tr><th class="text-success rounded-top">New Application</th></tr>              
 			 <tr>
 				   <th>Proposal Title</th>
 				   <td><textarea name=proposal_name class="form-control"  placeholder="Enter Proposal Title"></textarea></td>
@@ -975,18 +963,238 @@ function mk_select_from_array($name, $select_array,$disabled='',$default='')
 function echo_applicant_info_popup($link,$applicant_id)
 {
 	$user_info=get_user_info($link,$applicant_id);
-	//my_print_r($user_info);
-	echo '<table class="table">
-			<tr>
-				<td>'.$user_info['id'].'</td>
-				<td>'.$user_info['name'].'</td>
-				<td>'.$user_info['type'].'</td>
-				<td>'.$user_info['subtype'].'</td>
-				<td>'.$user_info['year_of_admission'].'</td>
-				<td>'.$user_info['department'].'</td>
-				<td>'.$user_info['email'].'</td>
-				<td>'.$user_info['mobile'].'</td>
-			</tr>
-		</table>';
+	
+	echo '<div>
+		<span class="text-primary">'.$applicant_id.'</span>/
+		<span class="text-danger">'.$user_info['name'].'</span>/
+		<span class="text-primary">'.$user_info['department'].'</span>/
+		<span class="text-danger">'.$user_info['type'].'</span>/
+		<span class="text-primary">'.$user_info['subtype'].'</span>		
+		<span class="text-danger">'.$user_info['year_of_admission'].'</span>/
+		<span class="text-primary">'.$user_info['email'].'</span>/
+		<span class="text-danger">'.$user_info['mobile'].'</span>	</div>';
 }
+
+///////For EC
+function list_ecm_reviewer($link,$proposal_id)
+{
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	
+	$sql_eligible_reviewer='select * from user where 
+								(type=\'ecm\' or type=\'ecms\')
+								and
+								id!=\''.$applicant_id.'\'';
+								
+	$result=run_query($link,'research',$sql_eligible_reviewer);
+
+	$selected_reviewer=get_selected_ecm_reviewer($link,$proposal_id);
+
+	echo '<form method=post>
+			<input type=hidden name=proposal_id value=\''.$proposal_id.'\'>
+			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
+
+	echo '<table class="table table-striped table-success">
+			<tr><th>reviwer</th><th>Reviewer id/Name/Department</th><th>Type</th></tr>';
+			
+	while($ar=get_single_row($result))
+	{
+		$user_info=get_user_info($link,$ar['id']);
+		if(in_array($ar['id'],$selected_reviewer)){$checked='checked';}else{$checked='';}
+		
+		echo '<tr>
+				<td>
+						<input class=sr id=ch_'.$ar['id'].' name=ch_'.$ar['id'].' type=checkbox '.$checked.'>
+				</td>
+				<td><label for=ch_'.$ar['id'].'><span class="text-primary">'.$ar['id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></label></td>
+				<td>'.$ar['type'].'</td>
+		</tr>';
+	}
+	echo '<tr><td colspan="3"><button name=action value=save_reviewer class="btn btn-block btn-success">Save</button></td></tr>';
+	echo '</table>';	
+	echo '</form>';
+}
+
+function get_selected_ecm_reviewer($link,$proposal_id)
+{
+	$applicant_id=get_applicant_id($link,$proposal_id);
+
+	$sql='select * from user,decision 
+			where 
+				proposal_id=\''.$proposal_id.'\' and 
+				user.id=decision.reviewer_id and
+				user.id!=\''.$applicant_id.'\'';
+				
+	$result_selected=run_query($link,'research',$sql);
+	
+	$ret=array();
+	while($ar=get_single_row($result_selected))
+	{
+		$ret[]=$ar['reviewer_id'];
+	}
+	//my_print_r($ret);
+	return $ret;
+}
+
+
+function save_ecm_reviewer($link,$post)
+{
+	$result=run_query($link,'research','select * from user where type=\'ecm\' || type=\'ecms\'');
+
+	$selected_reviewer=get_selected_ecm_reviewer($link,$post['proposal_id']);
+		
+	while($ar=get_single_row($result))
+	{
+		if(in_array($ar['id'],$selected_reviewer))
+		{
+			if(!isset($post['ch_'.$ar['id']]))
+			{
+				$sql_del='delete from decision where 
+						proposal_id=\''.$post['proposal_id'].'\' and 
+						reviewer_id=\''.$ar['id'].'\'';
+						
+				if(!run_query($link,'research',$sql_del))
+				{
+					//echo $sql_del.'<br>';
+					echo '<p><span class="text-danger">reviewers who already commented on proposal can not be deleted!!</span><br></p>';
+				}
+				else
+				{
+					echo '<p><span class="text-danger">...deleting user_id='.$ar['id'].' as reviewer for proposal_id='.$post['proposal_id'].'</span><br>';
+				}
+			}
+			else
+			{
+				//do nothing
+			}
+		}
+		else
+		{
+			if(isset($post['ch_'.$ar['id']]))
+			{
+				$sql='insert into decision values(
+					\''.$post['proposal_id'].'\',
+					\''.$ar['id'].'\',
+					\'0\')';
+				//echo $sql.'<br>';
+				echo '<p><span class="text-danger">...adding user_id='.$ar['id'].' as reviewer for proposal_id='.$post['proposal_id'].'</span>';
+				if(!run_query($link,'research',$sql))
+				{
+					echo '<p><span class="text-danger">'.$sql.'</span>';					
+				}
+			}
+			else
+			{
+				//do nothing
+			}			
+		}
+	}
+ 
+	
+	   ///////
+     //ecm/
+    ///////
+	$tot_ecm=count_selected_ecm_reviewer($link,$_POST['proposal_id']);
+	echo '<p><span class="text-danger">Total reviewers selected='.$tot_ecm.'</span>';
+    if($tot_ecm<$GLOBALS['required_ecm_reviewer'])
+	{
+		echo '<p><span class="text-danger">Total reviewers selected are less then required ('.$GLOBALS['required_ecm_reviewer'].')</span>';
+		set_application_status($link,$_POST['proposal_id'],'030.sent_to_ecms');
+	}
+	else
+	{
+		set_application_status($link,$_POST['proposal_id'],'040.ecm_assigned');		
+		echo '<p><span class="text-danger">Total reviewers selected are as required ('.$GLOBALS['required_ecm_reviewer'].')</span>';
+		echo '<p><span class="text-danger">Done setting application status to  ('.get_application_status($link,$_POST['proposal_id']).')</span>';
+	}
+
+
+}
+
+
+function count_selected_ecm_reviewer($link,$proposal_id)
+{
+	$applicant_id=get_applicant_id($link,$proposal_id);
+	$sql='select count(id) as total_selected from user,decision 
+			where 
+				proposal_id=\''.$proposal_id.'\' and 
+				user.id=decision.reviewer_id and
+				user.id!=\''.$applicant_id.'\' and
+				user.type!=\'srcm\' and user.type!=\'srcms\'
+				';
+
+	//applicant is not counted
+				
+	$result_selected=run_query($link,'research',$sql);
+	$ar=get_single_row($result_selected);
+	return $ar['total_selected'];
+}
+
+
+
+function view_entire_application_ecm($link,$proposal_id)
+{
+	echo '<ul class="nav nav-pills">
+		<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#application">Application</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#review_status">Review Status</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#comment">Comments (ECM)</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#make_comment">Make Comment (ECM)</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#approve">Approve Application (ECM)</a></li>
+	</ul>';
+	
+	echo '<div class="tab-content">';	
+
+		echo '<div class="jumbotron tab-pane container active" id=application>';
+			list_single_application_with_all_fields($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=review_status>';
+			show_review_status($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=comment>';
+			display_comment($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=make_comment>';
+			make_comment($link,$proposal_id);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=approve>';
+			approve($link,$proposal_id);
+		echo '</div>';
+
+	echo '</div>';//for tab-content
+	
+}
+
+
+function print_approval_latter($link,$status,$action='none',$message='')
+{
+	$result=run_query($link,'research','select * from proposal where status=\''.$status.'\'');
+	echo '<table class="table table-striped"><tr><th colspan=10>List of research application with current status of <span class=bg-danger>'.$status.'</span></th></tr>
+			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Proposal</th><th>DateTime</th><th>Status</th></tr>';
+	while($ar=get_single_row($result))
+	{
+		$user_info=get_user_info($link,$ar['applicant_id']);
+		echo '<tr>
+				<td>';
+		
+		if($action!='none')
+		{
+					echo '<form method=post>
+						<button class="btn btn-sm btn-block btn-info" formtarget=_blank name=action  value=\''.$action.'\' formaction=\''.$action.'\' >'.$ar['id'].' '.$message.'</button>
+						<input type=hidden name=proposal_id value=\''.$ar['id'].'\'>
+						<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+					</form>';
+		}
+		else
+		{
+			echo $ar['id'];
+		}			
+		echo ' </td>
+				<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
+				<td>'.$ar['proposal_name'].'</td>
+				<td>'.$ar['date_time'].'</td>
+				<td>'.$ar['status'].'</td>
+		</tr>';
+	}
+	echo '</table>';
+}
+
 ?>
