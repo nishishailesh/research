@@ -29,18 +29,8 @@ require_once 'research_common.php';
 
 	//all three can save comments
 	if($_POST['action']=='save_comment')
-	{ 
-		if(isset($_FILES['attachment']))
-		{
-			$blob=file_to_str($link,$_FILES['attachment']);
-			$upload_fname=$_FILES['attachment']['name'];
-		}
-		else
-		{
-			$blob='';
-			$upload_fname='';
-		}
-		save_comment($link,$_SESSION['login'],$_POST['proposal_id'],$_POST['comment'],$blob,$upload_fname);
+	{
+		save_comment($link,$_SESSION['login'],$_POST['proposal_id'],$_POST['comment']);
 	}	
 		
 	if($user_info['type']=='srcms')
@@ -211,7 +201,7 @@ require_once 'research_common.php';
         {   
 			//status($link,$_POST['proposal_id']);
 			$blob=file_to_str($link,$_FILES['attachment']);
-			save_attachement($link,$_POST['proposal_id'],$_POST['type'],$blob,$_FILES['attachment']['name']);		
+			save_attachement($link,$_POST['proposal_id'],$_POST['type'],$blob);		
 			view_entire_application_for_applicant($link,$_POST['proposal_id']);
 			$_SESSION['dsp']='researcher';
 			
@@ -341,11 +331,11 @@ if($user_info['type']=='ecm' || $user_info['type']=='ecms')
 
 //////////////user code ends////////////////
 tail();
-//$result=run_query($link,'research',"select * from user");
+//$result=run_query($link,'research',"select * from user
 //while($ar=get_single_row($result))
-//{
-//	my_print_r($ar);
-//}
+{
+	my_print_r($ar);
+}
 //my_print_r($_POST);
 //my_print_r($_FILES);
 //my_print_r($_SESSION);
