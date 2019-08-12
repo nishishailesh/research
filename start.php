@@ -10,7 +10,6 @@ require_once 'research_common.php';
 
 	$user_info=get_user_info($link,$_SESSION['login']);
 	//my_print_r($user_info);
-	echo'';
 	echo '<form method=post><table class="table table-dark">
 			<tr>
 				<td>'.$user_info['id'].'</td>
@@ -23,9 +22,14 @@ require_once 'research_common.php';
 				<td>'.$user_info['email'].'</td>
 				<td>'.$user_info['mobile'].'</td>
 				<td><button class="btn btn-info" type=submit formtarget=_blank name=action value=help 
-		formaction=http:\/\/'.$_SERVER['HTTP_HOST'].'/dokuwiki/doku.php?id=hrec_help:start">Help</button></td>
+		formaction="http:\\'.$_SERVER['HTTP_HOST'].'/dokuwiki/doku.php?id=hrec_help:start">Help</button></td>
 			</tr>
 		</table></form>';
+		
+	echo '<h3 data-toggle="collapse" data-target="#recent_activity" class="bg-warning">Recent Activity related to you <font size="4" color="blue">(Click to Expand)</font></h3>';
+	echo '<div id="recent_activity" class="collapse">';		
+		echo '<div id="recent_activity">Messages</div>';
+	echo '</div>';
 
 	//all three can save comments
 	if($_POST['action']=='save_comment')
@@ -48,7 +52,7 @@ require_once 'research_common.php';
 		/////
 		//1//
 		/////
-		echo '<h3 data-toggle="collapse" data-target="#srcms" class="bg-warning">Activity as SRCMS</h3>';
+		echo '<h3 data-toggle="collapse" data-target="#srcms" class="bg-warning">Activity as SRCMS <font size="4" color="blue">(Click to Expand)</font></h3>';
 		echo '<div id="srcms" class="collapse">';
 		if($_POST['action']=='assign_reviewer')
 		{
@@ -56,10 +60,13 @@ require_once 'research_common.php';
 				list_single_application($link,$_POST['proposal_id']);
 			//echo '</div>';
 			//echo '<div class="jumbotron">';
+			echo '<h3 data-toggle="collapse" data-target="#listr" class="bg-info">List Reviewers <font size="4" color="blue">(Click to Expand)</font></h3>';
+		    echo '<div id="listr" class="collapse">';
 				list_srcm_reviewer($link,$_POST['proposal_id']);
-			echo '</div>';
+			echo '</div></div>';
 			$_SESSION['dsp']='srcms';
 		}
+
 
 		/////
 		//2//
@@ -73,20 +80,31 @@ require_once 'research_common.php';
 			
 			echo '<div class="jumbotron">';
 				list_single_application($link,$_POST['proposal_id']);
+			echo '<h3 data-toggle="collapse" data-target="#listr" class="bg-info">List Reviewers <font size="4" color="blue">(Click to Expand)</font></h3>';
+		    echo '<div id="listr" class="collapse">';
 				list_srcm_reviewer($link,$_POST['proposal_id']);
-			echo '</div>';
+			echo '</div></div>';
 			$_SESSION['dsp']='srcms';
 		}
 
 		/////
-		//5//
+		//3//
 		/////		
 		if($_POST['action']=='send_to_ecms')
 		{
 			set_application_status($link,$_POST['proposal_id'],'030.sent_to_ecms');
 			$_SESSION['dsp']='srcms';
 		}
-				
+
+
+		/////
+		//4//
+		/////		
+		if($_POST['action']=='reverse_approval')
+		{
+			reverse_approval($link,$_POST['proposal_id'],$_POST['reviewer_id'],$_POST['comment']);
+		}
+						
 		echo '<ul class="nav nav-pills">
 			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Applied</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assigned">Reviewers Assigned (SRC)</a></li>
@@ -119,7 +137,7 @@ require_once 'research_common.php';
 		/////
 		//3//
 		/////
-		echo '<h3 data-toggle="collapse" data-target="#srcm" class="bg-warning">Activity as SRCM</h3>';
+		echo '<h3 data-toggle="collapse" data-target="#srcm" class="bg-warning">Activity as SRCM <font size="4" color="blue">(Click to Expand)</font></h3>';
 
 		echo '<div class=collapse id=srcm>';
 		
@@ -145,7 +163,7 @@ require_once 'research_common.php';
 			$_SESSION['dsp']='srcm';
 		}		
 		
-	
+
 			echo '<div class="jumbotron tab-pane container active" id=assigned>';
 				list_application_for_reviewer($link,'010.srcm_assigned','view_application',$_SESSION['login']);
 			echo '</div>';
@@ -163,7 +181,7 @@ require_once 'research_common.php';
 		$user_info['type']=='ecm'
 		)
 	 {
-		echo '<h3 data-toggle="collapse" data-target="#researcher" class="bg-warning">Activity as RESEARCHER</h3>';
+		echo '<h3 data-toggle="collapse" data-target="#researcher" class="bg-warning">Activity as PG Guide/RESEARCHER <font size="4" color="blue">(Click to Expand)</font></h3>';
 		 
 		echo '<div class=collapse id=researcher>';
 		
@@ -188,7 +206,7 @@ require_once 'research_common.php';
 			//$ref_blob=file_to_str($link,$_FILES['reference']);
 			//if($ref_blob==false){$ref_blob='';}
 			//insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$app_blob,$ref_blob);
-			insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$_POST['type'],$_POST['guide']);
+			insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$_POST['type'],$_POST['guide'],$_POST['year'],$_POST['dept_type']);
 			$_SESSION['dsp']='researcher';
 	    }
 
@@ -201,8 +219,8 @@ require_once 'research_common.php';
 			save_application_field($link,$_POST['id'],'proposal_name',$_POST['proposal_name']); 
 			save_application_field($link,$_POST['id'],'type',$_POST['type']); 
 			save_application_field($link,$_POST['id'],'guide',$_POST['guide']); 
-
-			
+            save_application_field($link,$_POST['id'],'year',$_POST['year']); 
+			save_application_field($link,$_POST['id'],'Department',$_POST['dept_type']); 
 			view_entire_application_for_applicant($link,$_POST['id']);
 			$_SESSION['dsp']='researcher';
 	    }
@@ -234,7 +252,7 @@ if($user_info['type']=='ecms')
 		/////
 		//1//
 		/////
-		echo '<h3 data-toggle="collapse" data-target="#ecms" class="bg-warning">Activity as ECMS</h3>';
+		echo '<h3 data-toggle="collapse" data-target="#ecms" class="bg-warning">Activity as ECMS <font size="4" color="blue">(Click to Expand)</font></h3>';
 		
 		echo '<div id="ecms" class="collapse">';
 		if($_POST['action']=='assign_reviewer')
@@ -243,7 +261,10 @@ if($user_info['type']=='ecms')
 				list_single_application($link,$_POST['proposal_id']);
 			//echo '</div>';
 			//echo '<div class="jumbotron">';
+			echo '<h3 data-toggle="collapse" data-target="#listr" class="bg-info">List Reviewers <font size="4" color="blue">(Click to Expand)</font></h3>';
+		    echo '<div id="listr" class="collapse">';
 				list_ecm_reviewer($link,$_POST['proposal_id']);
+			echo'</div>';
 			echo '</div>';
 			$_SESSION['dsp']='ecms';
 		}
@@ -252,6 +273,22 @@ if($user_info['type']=='ecms')
 			set_application_status($link,$_POST['proposal_id'],'070.ecms_approved');
 			$_SESSION['dsp']='ecms';
 		}
+		
+		
+		if($_POST['action']=='ecms_sent_back')
+		{
+			$list_of_reviewer=get_only_ecm_reviewer($link,$_POST['proposal_id']);
+			//print_r($list_of_reviewer);
+			foreach($list_of_reviewer as $value)
+			{
+				save_unapprove_ec($link,$value,$_POST['proposal_id'],'Sent back for re-review');
+			}
+			
+			set_application_status($link,$_POST['proposal_id'],'040.ecm_assigned');
+			$_SESSION['dsp']='ecms';
+		}
+		
+		
 			/////
 		//2//
 		/////
@@ -263,11 +300,25 @@ if($user_info['type']=='ecms')
 			//insert_reviewer($link,$_POST['proposal_id'],$applicant_id);
 			
 			echo '<div class="jumbotron">';
+	
 				list_single_application($link,$_POST['proposal_id']);
+			echo '<h3 data-toggle="collapse" data-target="#listr" class="bg-info">List Reviewers <font size="4" color="blue">(Click to Expand)</font></h3>';
+		    echo '<div id="listr" class="collapse">';
 				list_ecm_reviewer($link,$_POST['proposal_id']);
-			echo '</div>';
+			echo '</div></div>';
 			$_SESSION['dsp']='ecms';
 		}
+		
+		
+		if($_POST['action']=='view')
+		{
+			list_single_application_with_all_fields($link,$_POST['proposal_id']);
+			$_SESSION['dsp']='ecms';
+		}
+
+	
+		
+		
 	echo '<ul class="nav nav-pills">
 			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Assign EC Reviewer</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assigned">EC Reviewers Assigned</a></li>
@@ -284,7 +335,7 @@ if($user_info['type']=='ecms')
 				list_application_status($link,'040.ecm_assigned','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=ecms_approve><p>';		
-				list_application_status($link,'060.ecm_approved','ecms_approve','Approve as ECMS');
+				list_application_status_for_ecms_final($link,'060.ecm_approved');
 			echo '</p></div>';
 			echo '<div class="jumbotron tab-pane container" id=print>';
 			//echo 'Print approval here';
@@ -302,7 +353,7 @@ if($user_info['type']=='ecm' || $user_info['type']=='ecms')
 		/////
 		//3//
 		/////
-		echo '<h3 data-toggle="collapse" data-target="#ecm" class="bg-warning">Activity as ECM</h3>';
+		echo '<h3 data-toggle="collapse" data-target="#ecm" class="bg-warning">Activity as ECM <font size="4" color="blue">(Click to Expand)</font></h3>';
 
 		echo '<div class=collapse id=ecm>';
 		
@@ -338,7 +389,6 @@ if($user_info['type']=='ecm' || $user_info['type']=='ecms')
 			
 	}
 	
-
 //////////////user code ends////////////////
 tail();
 //$result=run_query($link,'research',"select * from user");
@@ -350,14 +400,41 @@ tail();
 //my_print_r($_FILES);
 //my_print_r($_SESSION);
 //my_print_r($_SERVER);
+
+if(isset($_POST['session_name'])){$post='session_name='.$_POST['session_name'];}else{$post=session_name();}
+if(isset($_SESSION['dsp'])){$dsp='\'#'.$_SESSION['dsp'].'\'';}else{$dsp='';}
+
 ?>
+
+
 <script>
-var xx= '#'+'<?php  echo $_SESSION['dsp']; ?>';
+
 jQuery(document).ready(
 	function() 
 	{
-		jQuery(xx).addClass("show");
-		//alert(xx);
+		jQuery(<?php echo $dsp;?>).addClass("show");
+		start();
 	}
 );
+
+
+function start()
+{
+	setTimeout(callServer, 2000);
+}
+	
+function callServer()
+{
+	var xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+		   document.getElementById('recent_activity').innerHTML = xhttp.responseText;
+		}
+	};
+	xhttp.open('POST', 'response.php', true);
+	xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+	xhttp.send(<?php echo '\''.$post.'\'';?>);
+	setTimeout(callServer, <?php echo $GLOBALS['recent_activity_refresh_period']; ?>);
+}
 </script>
+

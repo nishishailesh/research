@@ -161,7 +161,7 @@ function echo_download_button($table,$field,$primary_key,$primary_key_value,$pos
 			<input type=hidden name=primary_key_value value=\''.$primary_key_value.'\'>
 			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
 			
-			<button class="btn btn-primary btn-block"  
+			<button class="btn btn-info btn-block"  
 			formtarget=_blank
 			type=submit
 			name=action
@@ -174,7 +174,7 @@ function list_single_application_with_all_fields($link,$id)
 {
 	$result=run_query($link,'research','select * from proposal where id=\''.$id.'\'');
 	echo '<table class="table table-warning table-bordered">
-			<tr class="bg-success"><th>proposal id</th><th>applicant id/name/department</th><th>Title</th><th>Type</th><th>Guide</th><th>DateTime</th><th>Current Status</th></tr>';
+			<tr class="bg-success"><th>proposal id</th><th>applicant id/name/department</th><th>Title</th><th>Type</th><th>Researcher</th><th>DateTime</th><th>Current Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
 		echo '<tr>
@@ -228,7 +228,10 @@ foreach($GLOBALS['attachment_type'] as $key =>$value)
 					<td>'.$ar['type'].'</td>
 					<td>'.$ar['date_time'].'</td>';
 			echo '<td>';
-			echo_download_button('attachment','attachment','id',$ar['id'],''.$proposal_id.'-'.$ar['type'].'-'.$ar['id'].'-'.$ar['attachment_name']);
+			if(strlen($ar['attachment'])>0)
+		        {
+		  		echo_download_button('attachment','attachment','id',$ar['id'],''.$proposal_id.'-'.$ar['type'].'-'.$ar['id'].'-'.$ar['attachment_name']);
+			}
 			echo '</td></tr>';
 			$prev_type=$ar['type'];
 		}	
@@ -362,7 +365,8 @@ function get_comment_info($link,$proposal_id)
 	$result=run_query($link,'research','select * from comment where proposal_id=\''.$proposal_id.'\'');
 	return get_single_row($result);
 }
-function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment,$attachment_name)
+
+function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment='',$attachment_name='')
 {	
 	$sql='insert into comment 
 			(proposal_id,reviewer_id,comment,date_time,attachment,attachment_name)
@@ -375,13 +379,14 @@ function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment,$atta
 			\''.$attachment_name.'\'
 			)';
 
+	//echo $sql;
 	if(!run_query($link,'research',$sql))
 	{
-		echo '<span class="text-danger">Comment not Saved</span><br>';
+		echo '<br><span class="text-danger">Comment not Saved</span>';
 	}
 	else
 	{
-		echo '<span class="text-success">Comment Saved</span><br>';
+		echo '<br><span class="text-success">Comment Saved</span>';
 	}
 	
 	
@@ -400,7 +405,7 @@ function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment,$atta
 
 	$final_comment=$pre_comment.$comment1;
 	
-	send_all_emails($link,$proposal_id,$final_comment);
+	//send_all_emails($link,$proposal_id,$final_comment);
 }
 function send_all_emails($link,$proposal_id,$comment)
 {
@@ -415,7 +420,7 @@ function send_all_emails($link,$proposal_id,$comment)
 		//$c=get_comment_info($link,$proposal_id);
 		//echo $c['reviewer_id'];
 		$s=get_user_info($link,$ar['applicant_id']);
-		save_email($s['email'],$comment);
+		save_email($s['email'],$comment,$s['mobile']);
 		//echo $s['email'].'<br>';
 		if($ar['status']=="010.srcm_assigned")
 		{
@@ -427,7 +432,6 @@ function send_all_emails($link,$proposal_id,$comment)
 			//return $s['email'];
 			save_email($s['email'],$comment);
 			}
-			
 		}	
 	
 		if($ar['status']=="040.ecm_assigned")
@@ -443,7 +447,7 @@ function send_all_emails($link,$proposal_id,$comment)
 		}
 }
 
-function save_email($emailid,$comment)
+function save_email($emailid,$comment,$sms=0)
 {
 	
 	////////remote save comment//////////
@@ -452,10 +456,10 @@ function save_email($emailid,$comment)
     //$sql='INSERT INTO email(`id`,`to`,`subject`,`content`,`sent`)
 	// 	VALUES (\'\',\''.$emailid.'\',\'HREC Notice: Action required\',\''.mysqli_real_escape_string($main_server_link,htmlspecialchars($comment)).'\',0)';
 	
-	
-	$sql='INSERT INTO email(`id`,`to`,`subject`,`content`,`sent`)
+	if(!$main_server_link){return false;}
+	$sql='INSERT INTO email(`id`,`to`,`subject`,`content`,`sent`,sms,sms_sent)
 	 	VALUES (\'\',\''.$emailid.'\',\'HREC Notice: Action required\',\''.
-	 	mysqli_real_escape_string($main_server_link,$comment).'\',0)';
+	 	mysqli_real_escape_string($main_server_link,$comment).'\',0,\''.$sms.'\',0)';
 	
      //echo $sql;
 	if(!run_query($main_server_link,'email',$sql))
@@ -725,6 +729,8 @@ function list_srcm_reviewer($link,$proposal_id)
 
 function show_review_status($link,$proposal_id)
 {
+	$user=get_user_info($link,$_SESSION['login']);
+	
 	$applicant_id=get_applicant_id($link,$proposal_id);
 	$sql='select * from decision where 
 				proposal_id=\''.$proposal_id.'\'
@@ -772,10 +778,35 @@ function show_review_status($link,$proposal_id)
 		echo '<tr>
 				<td><span class="text-primary">'.$ar['reviewer_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
 				<td>'.$user_info['type'].'</td>
-				<td>'.$ap.'</td>
-		</tr>';
+				<td>'.$ap.'</td>';
+				//<td>';
+				//if($user['type']=='srcms' || $user['type']=='ecms')
+				//{
+				//echo '	<form method=post>
+						//<button type=submit class="btn btn-warning" name=action value=reverse_approval>Reverse<br>approval</button>
+
+						//<input type=hidden name=proposal_id value=\''.$proposal_id.'\'>
+						//<input type=hidden name=reviewer_id value=\''.$ar['reviewer_id'].'\'>
+						//<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+						//<textarea name=comment placeholder="Remark for reversal"></textarea>
+					//</form>				
+				//</td>';
+				//}
+				
+			echo '</tr>';
 	}
 	echo '</table>';	
+}
+
+
+function reverse_approval($link,$proposal_id,$reviewer_id,$comment)
+{
+	print_r($_POST);
+	$sql='update decision set approval=0
+	where 
+		proposal_id=\''.$proposal_id.'\' and reviewer_id=\''.$reviewer_id.'\'';
+	echo $sql;
+	save_comment($link,$reviewer_id,$proposal_id,$comment,'','');
 }
 
 
@@ -785,6 +816,7 @@ function save_srcm_reviewer($link,$post)
 
 	$selected_reviewer=get_selected_srcm_reviewer($link,$post['proposal_id']);
 		
+	$applicant_id=get_applicant_id($link,$post['proposal_id']);
 	while($ar=get_single_row($result))
 	{
 		if(in_array($ar['id'],$selected_reviewer))
@@ -793,7 +825,9 @@ function save_srcm_reviewer($link,$post)
 			{
 				$sql_del='delete from decision where 
 						proposal_id=\''.$post['proposal_id'].'\' and 
-						reviewer_id=\''.$ar['id'].'\'';
+						reviewer_id=\''.$ar['id'].'\' and
+						reviewer_id!=\''.$applicant_id.'\'
+						';
 						
 				if(!run_query($link,'research',$sql_del))
 				{
@@ -871,7 +905,7 @@ function save_srcm_reviewer($link,$post)
 	 
 	$final_comment=$pre_comment.$comment1;
 	
-	send_all_emails($link,$_POST['proposal_id'],$final_comment);
+	//send_all_emails($link,$_POST['proposal_id'],$final_comment);
 
 
 }
@@ -930,7 +964,7 @@ function list_researcher_application($link)
 		echo '<tr>
 			   	<td>
 					<form method=post>
-						<button onclick="return confirm(\'Do you really  want to view detail of Proposal?\');"  class="btn btn-sm btn-block btn-info" value=manage_application name=action>'.$ar['id'].'</button>
+						<button  class="btn btn-sm btn-block btn-info" value=manage_application name=action>'.$ar['id'].'</button>
 						<input type=hidden name=proposal_id value=\''.$ar['id'].'\'>
 						<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
 					</form>
@@ -965,11 +999,22 @@ function get_application_data($link)
 				   echo '<td>Select appropriate type of proposal</td>';
 			echo '</tr>
 			 <tr>
-				   <th>Guide</th>
-				   <td><input name=guide class="form-control"  placeholder="Name of Guide"></td>
-				   <td>Applicable only for proposals from UG and PG students</td>
+				   <th>Researcher</th>
+				   <td><input name=guide class="form-control"  placeholder="Name of Researcher"></td>
+				   <td>If applying on behalf of UG/PG student, write name of UG/PG Student</td>
 			</tr>			
-			
+			<tr>
+				   <th>Year of Admission</th>
+				   <td><input name=year class="form-control"  placeholder="Enter Year"></td>
+				  
+			</tr>	
+				<tr>
+				   <th>Department</th>
+				   <td>';
+				   mk_select_from_array('dept_type',$GLOBALS['Department_Type'],'','');
+				   echo'</td>
+				  
+			</tr>	
 			<tr>
 					<td></td>
 					<td>
@@ -999,15 +1044,15 @@ function file_to_str($link,$file)
 	}
 }
 
-function insert_application($link,$aid,$pname,$type,$guide)
+function insert_application($link,$aid,$pname,$type,$guide,$year,$dept_type)
 {
 	//$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status)
 	// 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
 
-	$sql='INSERT INTO proposal( applicant_id, proposal_name,type,guide,date_time, status)
-	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$type.'\',\''.$guide.'\',now(),\'001.applied\')';
+	$sql='INSERT INTO proposal( applicant_id, proposal_name,type,date_time,guide,year,Department, status)
+	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$type.'\',now(),\''.$guide.'\',\''.$year.'\',\''.$dept_type.'\',\'001.applied\')';
 	$result=run_query($link,'research',$sql);
-	
+	//echo $sql;
     if($result==false)
 	{
 		echo '<h3 style="color:red;">No record inserted</h3>';
@@ -1078,11 +1123,22 @@ function edit_application($link,$proposal_id,$readonly='')
 						   echo '<td>Select appropriate type of proposal</td>';
 					echo '</tr>
 					 <tr>
-						   <th>Guide</th>
-						   <td><input name=guide class="form-control"  placeholder="Name of Guide" value=\''.$ar['guide'].'\'></td>
-						   <td>Applicable only for proposals from UG and PG students</td>
-					</tr>			
-			
+						   <th>Researcher</th>
+						   <td><input name=guide class="form-control"  placeholder="Name of Researcher" value=\''.$ar['guide'].'\'></td>
+						   <td>If applying on behalf of UG/PG student, write name of UG/PG Student</td>
+					</tr>
+			    <tr>
+				   <th>Year of Admission</th>
+				   <td><input name=year class="form-control"  placeholder="Enter Year" value=\''.$ar['year'].'\'></td>
+				  
+		   	</tr>	
+				<tr>
+				   <th>Department</th>
+				   <td>';
+				   mk_select_from_array('dept_type',$GLOBALS['Department_Type'],'',$ar['Department']);
+				   echo'</td>
+				  
+			</tr>	
 					<tr>
 						<td></td>
 						<td>';
@@ -1152,7 +1208,7 @@ function upload_attachment($link,$proposal_id)
 						   <td>';
 						   mk_select_from_array('type',$GLOBALS['attachment_type']);
 						   echo '</td>';
-						   echo '<td>Select appropriate type of document</td>';
+						   echo '<td>Select appropriate type of document'.help('upload_type_help').'</td>';
 
 					echo '<tr>
 							<td colspan=3>';
@@ -1160,7 +1216,7 @@ function upload_attachment($link,$proposal_id)
 					echo'		<button onclick="return confirm(\'Do you really want to Upload application?\');"  class="btn btn-primary"  
 								type=submit
 								name=action
-								value=upload_attachment>Upload</button>
+								value=upload_attachment>Upload</button>'.help('upload_button_help').'
 							</td>
 						</tr>';
 
@@ -1169,7 +1225,23 @@ function upload_attachment($link,$proposal_id)
 }
 }
 
-
+function help($topic)
+{
+	$str= '<button type=button data-toggle="modal" data-target=#'.$topic.' class="btn btn-light m-1 p-0" ><img src="img/help.png" width="30"></button>';
+	$str=$str.	'<div class="modal" id='.$topic.'>
+					<div class="modal-dialog modal-dialog-scrollable" >
+						<div class="modal-content">
+							<div class="modal-body">
+								'.$GLOBALS[$topic].'
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>';				
+	return $str;
+}
 
 function save_attachement($link,$proposal_id,$type,$blob,$attachment_name)
 {
@@ -1177,6 +1249,11 @@ function save_attachement($link,$proposal_id,$type,$blob,$attachment_name)
 	if(strlen($type)==0)
 	{
 		echo '<h5 style="color:red;">nothing uploaded. upload type is required.  Retry with selection of upload type</h5>';
+		return false;
+	}
+       	if(strlen($blob)==0)
+	{
+		echo '<h5 style="color:red;">nothing uploaded. file size is 0 .  Retry with proper file.</h5>';
 		return false;
 	}
 	
@@ -1327,7 +1404,8 @@ function save_ecm_reviewer($link,$post)
 	$result=run_query($link,'research','select * from user where type=\'ecm\' || type=\'ecms\'');
 
 	$selected_reviewer=get_selected_ecm_reviewer($link,$post['proposal_id']);
-		
+	$applicant_id=get_applicant_id($link,$post['proposal_id']);
+	
 	while($ar=get_single_row($result))
 	{
 		if(in_array($ar['id'],$selected_reviewer))
@@ -1336,7 +1414,9 @@ function save_ecm_reviewer($link,$post)
 			{
 				$sql_del='delete from decision where 
 						proposal_id=\''.$post['proposal_id'].'\' and 
-						reviewer_id=\''.$ar['id'].'\'';
+						reviewer_id=\''.$ar['id'].'\' and
+						reviewer_id!=\''.$applicant_id.'\'
+						';
 						
 				if(!run_query($link,'research',$sql_del))
 				{
@@ -1406,7 +1486,7 @@ function save_ecm_reviewer($link,$post)
 	 
 	$final_comment=$pre_comment.$comment1;
 	
-	send_all_emails($link,$_POST['proposal_id'],$final_comment);
+	//send_all_emails($link,$_POST['proposal_id'],$final_comment);
 //send_all_emails($link,$_POST['proposal_id'],'assigne reviewer');
 
 }
@@ -1693,5 +1773,68 @@ echo'
 </table>
 ';
 }
+
+
+
+
+function list_application_status_for_ecms_final($link,$status)
+{
+	$result=run_query($link,'research','select * from proposal where status=\''.$status.'\'');
+	echo '<table class="table table-striped"><tr><th colspan=10>List of research application with current status of <span class=bg-danger>'.$status.'</span></th></tr>
+			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
+	while($ar=get_single_row($result))
+	{
+		//$user_info=get_user_info($link,$ar['applicant_id']);
+		echo '<tr>
+				<td>';
+
+					echo '<form method=post>
+						<button class="btn btn-sm btn-block btn-info" name=action value=view >'.$ar['id'].' View</button>
+						<button class="btn btn-sm btn-block btn-info" name=action value=ecms_approve >'.$ar['id'].' Approve</button>
+						<button class="btn btn-sm btn-block btn-info" name=action value=ecms_sent_back >'.$ar['id'].' Send back</button>
+						<input type=hidden name=proposal_id value=\''.$ar['id'].'\'>
+						<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+					</form>';
+		
+		
+		echo ' </td>';
+		
+		echo '<td>';
+			echo_applicant_info_popup($link,get_applicant_id($link,$ar['id']));
+		echo '</td>';
+		
+				//<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
+		echo '<td>'.$ar['proposal_name'].'</td>
+				<td>'.$ar['date_time'].'</td>
+				<td>'.$ar['status'].'</td>
+		</tr>';
+		
+
+	}
+	echo '</table>';
+}
+
+
+function save_unapprove_ec($link,$reviewer_id,$proposal_id,$comment)
+{	
+	save_comment($link,$reviewer_id,$proposal_id,$comment.' [UNAPPROVED]');
+	
+	$sql='update decision 
+			set approval=0
+			where
+				proposal_id=\''.$proposal_id.'\' and
+				reviewer_id=\''.$reviewer_id.'\'';
+
+	//echo $sql;
+	if(!run_query($link,'research',$sql))
+	{
+		echo '<br><span class="text-danger">Unapproval failed</span>';
+	}
+	else
+	{
+		echo '<br><span class="text-success">Review by reviewer_id='.$reviewer_id.' for proposal_id='.$proposal_id.' is Unapproved</span>';
+	}
+}
+
 
 ?>

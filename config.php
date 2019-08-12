@@ -11,11 +11,13 @@ $GLOBALS['expirydate_field']='expirydate';
 
 //////Project specific globals
 $GLOBALS['required_srcm_reviewer']=3;
-$GLOBALS['required_ecm_reviewer']=2;
-
+$GLOBALS['required_ecm_reviewer']=3;
+$GLOBALS['recent_activity_refresh_period']=10000;
+$GLOBALS['recent_activity_data_count']=20;
 
 $GLOBALS['proposal_type']=array(
-									'Dissertation',
+									'PG Dissertation',
+									'ICMR STS',
 									'Research Project',
 									'Poster/Paper',
 									'PhD',
@@ -40,4 +42,62 @@ $GLOBALS['attachment_type']=array(
 									'Undertakings',								
 									'Other'
 								);
+$GLOBALS['Department_Type']=array(
+									'',
+									'Anatomy',
+									'Anesthesiology',
+									'Biochemistry',
+									'Burns and Plastic Surgery',
+									'Cardiology',
+									'Community Medicine',
+									'Dentistry',
+									'Emergency Medicine',
+									'ENT',
+									'ENT-NPPCD',
+									'Forensic Medicine',
+									'General surgery',
+									'IHBT',
+									'Medicine',
+									'Microbiology',
+									'Neurology',
+									'Neurosurgery',
+									'Obstetrics and Gynacology(NTMO)',
+									'Obstetrics and Gynecology',
+									'Obstetrics and Gynecology(MCHO)',
+									'Office of The Dean',
+									'Opthalmology',
+									'Orthopedics',
+									'Paediatrics',
+									'Pathology',
+									'Pharmacology',
+									'Physiology',
+									'Psychiatry',
+									'Radiology',
+									'Respiratory Medicine',
+									'Skin and VD'								
+								);
+								
+								
+$GLOBALS['upload_type_help']=
+'<b>Following documents in only signed PDF</b><br>
+<hr>
+Covering Letter<br>
+Permission from MS<br>
+Permission from Dean<br>
+Permission from collaborator<br>
+Permission from resource-site<br><hr>
+<b>Following documents preferably in word processor/ spreadsheet / presentation format</b><br>
+<hr>
+Protocol<br>
+Data collection questionnaire<br>
+Assesment tools<br>
+Patient information sheet<br>
+Patient informed consent form<br>
+References<br>
+Undertakings<br><hr>
+<b>Following documents in any Suitable format</b><br>
+<hr>
+Others<br>';
+$GLOBALS['upload_button_help']='data can not be saved if ...<br>1)file is not given<br>2)file size is zero <br> 3)Type is not selected ';
+
 ?>
