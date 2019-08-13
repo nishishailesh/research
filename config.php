@@ -15,6 +15,8 @@ $GLOBALS['required_ecm_reviewer']=3;
 $GLOBALS['recent_activity_refresh_period']=10000;
 $GLOBALS['recent_activity_data_count']=20;
 
+$GLOBALS['send_email']=1;
+
 $GLOBALS['proposal_type']=array(
 									'PG Dissertation',
 									'ICMR STS',

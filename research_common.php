@@ -405,11 +405,11 @@ function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment='',$a
 
 	$final_comment=$pre_comment.$comment1;
 	
-	//send_all_emails($link,$proposal_id,$final_comment);
+	send_all_emails($link,$proposal_id,$final_comment);
 }
 function send_all_emails($link,$proposal_id,$comment)
 {
-	
+	if($GLOBALS['send_email']!=1){return;}
 	$result='select * from proposal where  id=\''.$proposal_id.'\'';
 	$result_selected=run_query($link,'research',$result);
 	$ar=get_single_row($result_selected);
@@ -905,7 +905,7 @@ function save_srcm_reviewer($link,$post)
 	 
 	$final_comment=$pre_comment.$comment1;
 	
-	//send_all_emails($link,$_POST['proposal_id'],$final_comment);
+	send_all_emails($link,$_POST['proposal_id'],$final_comment);
 
 
 }
@@ -1486,8 +1486,7 @@ function save_ecm_reviewer($link,$post)
 	 
 	$final_comment=$pre_comment.$comment1;
 	
-	//send_all_emails($link,$_POST['proposal_id'],$final_comment);
-//send_all_emails($link,$_POST['proposal_id'],'assigne reviewer');
+	send_all_emails($link,$_POST['proposal_id'],$final_comment);
 
 }
 
