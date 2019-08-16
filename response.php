@@ -55,6 +55,7 @@ function display_msg($link)
 				echo '</td>';
 				echo '<td>';
 					echo $ar['date_time'];
+					//echo popup('id_'.$ar['proposal_id'].$ar['id'],$ar['comment']);
 				echo '</td>';				
 			echo '</tr>';
 			//echo 'Proposal ('.$ar['proposal_id'].')'.$proposal_data['proposal_name'].'->Comment by: '.$reviewer_data['name'].' at '.$ar['date_time'].'<br>';
@@ -62,7 +63,7 @@ function display_msg($link)
 	
 	echo '</table>';	
 	/////////////////
-	$sql_r='select proposal_id from decision where reviewer_id=\''.$_SESSION['login'].'\' and approval=0';
+	$sql_r='select proposal_id from decision where reviewer_id=\''.$_SESSION['login'].'\'';
 	
 	$result_r=run_query($link,'research',$sql_r);
 	$my_review=array();
@@ -72,14 +73,22 @@ function display_msg($link)
 	}
 	
 	//my_print_r($my_review);
-	$my_review_str=join('\',\'',$my_review);
+	//my_print_r(array_diff($my_review,$my_application));
+	$my_review_only=array_diff($my_review,$my_application);
+	$my_review_str=join('\',\'',$my_review_only);
 	$my_review_str='\''.$my_review_str.'\'';
 	//echo $my_review_str;
 	
-	$sql_review_comment='select * from comment 
-								where proposal_id in ('.$my_review_str.')
-								order by date_time desc limit '.$GLOBALS['recent_activity_data_count'];
+	//$sql_review_comment='select * from comment 
+	//					where proposal_id in ('.$my_review_str.') and
+	//					reviewer_id!=\''.$_SESSION['login'].'\'
+	//					order by date_time desc limit '.$GLOBALS['recent_activity_data_count'];
 	
+        $sql_review_comment='select * from comment 
+                                                where proposal_id in ('.$my_review_str.') 
+                                                order by date_time desc limit '.$GLOBALS['recent_activity_data_count'];
+
+
 	//echo $sql_review_comment;
 	$result_review_comment=run_query($link,'research',$sql_review_comment);
 
@@ -102,6 +111,7 @@ function display_msg($link)
 				echo '</td>';
 				echo '<td>';
 					echo $arr['date_time'];
+					//echo popup('id_'.$arr['proposal_id'].$arr['id'],'<pre>'.$arr['comment'].'</pre>');
 				echo '</td>';				
 			echo '</tr>';
 			//echo 'Proposal ('.$ar['proposal_id'].')'.$proposal_data['proposal_name'].'->Comment by: '.$reviewer_data['name'].' at '.$ar['date_time'].'<br>';

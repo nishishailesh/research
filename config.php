@@ -13,10 +13,8 @@ $GLOBALS['expirydate_field']='expirydate';
 $GLOBALS['required_srcm_reviewer']=3;
 $GLOBALS['required_ecm_reviewer']=3;
 $GLOBALS['recent_activity_refresh_period']=10000;
-$GLOBALS['recent_activity_data_count']=20;
-
+$GLOBALS['recent_activity_data_count']=5;
 $GLOBALS['send_email']=1;
-
 $GLOBALS['proposal_type']=array(
 									'PG Dissertation',
 									'ICMR STS',
@@ -95,6 +93,7 @@ Data collection questionnaire<br>
 Assesment tools<br>
 Patient information sheet<br>
 Patient informed consent form<br>
+(To write in ગુજરાતી and हिन्दी Link:-<a target=_blank href="http:\/\/'.$_SERVER['HTTP_HOST'].'/ucode">click here</a>)<br>
 References<br>
 Undertakings<br><hr>
 <b>Following documents in any Suitable format</b><br>

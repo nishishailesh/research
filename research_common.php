@@ -407,6 +407,49 @@ function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment='',$a
 	
 	send_all_emails($link,$proposal_id,$final_comment);
 }
+
+function save_comment_for_reviewer_assignment($link,$reviewer_id,$proposal_id)
+{	
+	$comment='You are assigned as reviewer for this protocol';
+	$sql='insert into comment 
+			(proposal_id,reviewer_id,comment,date_time)
+			values(
+			\''.$proposal_id.'\',
+			\''.$reviewer_id.'\',
+			\''.$comment.'\',
+			now()
+			)';
+
+	//echo $sql;
+	if(!run_query($link,'research',$sql))
+	{
+		echo '<br><span class="text-danger">Comment not Saved</span>';
+	}
+	else
+	{
+		echo '<br><span class="text-success">Comment Saved</span>';
+	}
+	
+	
+	$reviewer_data=get_user_info($link, $reviewer_id);
+
+	$proposal_data=get_proposal_info($link,$proposal_id);
+		
+	$pre_comment=
+	'<h2><b>You received this email because you are reviewer/applicant to HREC, GMC Surat.</b></h2>
+	<h2><b>	Proposal Name:- <u style=\'color: darkcyan;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$proposal_data['proposal_name'].'</u></b></h2>
+	<h3 style=\'font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'><b>Comment made by:- <u style=\'color: darkviolet;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$reviewer_data['name'].'</u></b></h3>
+	<h4>Following is content of Comment.<br>(for details login to HREC application on following link)<br>
+	 <a href="http://gmcsurat.edu.in:12347/hrec">REC Login from Internet</a><br>
+	 <a href="http://11.207.1.2/hrec/">REC Login from College Network</a></h4>';
+	$comment1='<h4>'.nl2br(htmlspecialchars($comment)).'</h4>';
+
+	$final_comment=$pre_comment.$comment1;
+	
+	save_email($reviewer_data['email'],$final_comment);
+	//send_all_emails($link,$proposal_id,$final_comment);
+}
+
 function send_all_emails($link,$proposal_id,$comment)
 {
 	if($GLOBALS['send_email']!=1){return;}
@@ -858,6 +901,8 @@ function save_srcm_reviewer($link,$post)
 				{
 					echo '<p><span class="text-danger">'.$sql.'</span>';					
 				}
+				//save_comment_for_reviewer_assignment($link,$ar['id'],$post['proposal_id']);
+				//save_comment($link,$ar['id'],$post['proposal_id'],'You are assigned as reviewer for this proposal');
 			}
 			else
 			{
@@ -891,6 +936,8 @@ function save_srcm_reviewer($link,$post)
 		echo '<p><span class="text-danger">Total reviewers selected are as required ('.$GLOBALS['required_srcm_reviewer'].')</span>';
 		echo '<p><span class="text-danger">Done setting application status to  ('.get_application_status($link,$_POST['proposal_id']).')</span>';
 	}
+	
+	/*
 	$proposal_data=get_proposal_info($link,$_POST['proposal_id']);
 		
 	$pre_comment=
@@ -906,7 +953,7 @@ function save_srcm_reviewer($link,$post)
 	$final_comment=$pre_comment.$comment1;
 	
 	send_all_emails($link,$_POST['proposal_id'],$final_comment);
-
+	*/
 
 }
 
@@ -1243,6 +1290,24 @@ function help($topic)
 	return $str;
 }
 
+
+function popup($topic,$text)
+{
+	$str= '<button type=button data-toggle="modal" data-target=#'.$topic.' class="btn btn-light m-1 p-0" ><img src="img/eye.png" width="30"></button>';
+	$str=$str.	'<div class="modal" id='.$topic.'>
+					<div class="modal-dialog modal-dialog-scrollable" >
+						<div class="modal-content">
+							<div class="modal-body">
+								'.$text.'
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>';				
+	return $str;
+}
 function save_attachement($link,$proposal_id,$type,$blob,$attachment_name)
 {
 	
