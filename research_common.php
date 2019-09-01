@@ -174,7 +174,7 @@ function list_single_application_with_all_fields($link,$id)
 {
 	$result=run_query($link,'research','select * from proposal where id=\''.$id.'\'');
 	echo '<table class="table table-warning table-bordered">
-			<tr class="bg-success"><th>proposal id</th><th>applicant id/name/department</th><th>Title</th><th>Type</th><th>Researcher</th><th>DateTime</th><th>Current Status</th></tr>';
+			<tr class="bg-success"><th>proposal id</th><th>applicant id/name/department</th><th>Title</th><th>Type</th><th>Researcher</th><th>Researcher Email id</th><th>Researcher Mobile No</th><th>DateTime</th><th>Current Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
 		echo '<tr>
@@ -185,6 +185,8 @@ function list_single_application_with_all_fields($link,$id)
 				<td>'.$ar['proposal_name'].'</td>
 				<td>'.$ar['type'].'</td>
 				<td>'.$ar['guide'].'</td>
+				<td>'.$ar['researcher_email_id'].'</td>
+				<td>'.$ar['researcher_mobile_no'].'</td>
 				<td>'.$ar['date_time'].'</td>
 				
 				<td>
@@ -395,15 +397,15 @@ function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment='',$a
 	$proposal_data=get_proposal_info($link,$proposal_id);
 		
 	$pre_comment=
-	'<h2><b>You received this email because you are reviewer/applicant to HREC, GMC Surat.</b></h2>
-	<h2><b>	Proposal Name:- <u style=\'color: darkcyan;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$proposal_data['proposal_name'].'</u></b></h2>
-	<h3 style=\'font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'><b>Comment made by:- <u style=\'color: darkviolet;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$reviewer_data['name'].'</u></b></h3>
-	<h4>Following is content of Comment.<br>(for details login to HREC application on following link)<br>
-	 <a href="http://gmcsurat.edu.in:12347/hrec">REC Login from Internet</a><br>
-	 <a href="http://11.207.1.2/hrec/">REC Login from College Network</a></h4>';
+	'<h2><b>HREC, GMC Surat.</b></h2>
+	<h2><b>Proposal ID:'.$proposal_id.'<br>
+	Proposal Name:- <u style=\'color: darkcyan;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$proposal_data['proposal_name'].'</u></b></h2>
+	<h3 style=\'font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'><b>Comment from:- <u style=\'color: darkviolet;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$reviewer_data['name'].'</u></b></h3>
+	<h4>Comment:<br>';
 	$comment1='<h4>'.nl2br(htmlspecialchars($comment)).'</h4>';
 
-	$final_comment=$pre_comment.$comment1;
+	$final_comment=$pre_comment.$comment1.'<a href="http://gmcsurat.edu.in:12347/hrec">REC Login from Internet</a><br>
+	 <a href="http://11.207.1.2/hrec/">REC Login from College Network</a></h4>';
 	
 	send_all_emails($link,$proposal_id,$final_comment);
 }
@@ -465,7 +467,13 @@ function send_all_emails($link,$proposal_id,$comment)
 		$s=get_user_info($link,$ar['applicant_id']);
 		save_email($s['email'],$comment,$s['mobile']);
 		//echo $s['email'].'<br>';
-		if($ar['status']=="010.srcm_assigned")
+                $em=get_proposal_info($link,$ar['id']);
+		if(strlen($em['researcher_email_id'])>0)
+		{
+		save_email($em['researcher_email_id'],$comment,$em['researcher_mobile_no']);
+		//echo $em['researcher_email_id'].'<br>';
+	        }	
+	if($ar['status']=="010.srcm_assigned")
 		{
 			$srcm_reviewer_list=get_only_srcm_reviewer($link,$proposal_id);
 			foreach($srcm_reviewer_list as $key=> $value)
@@ -494,7 +502,8 @@ function save_email($emailid,$comment,$sms=0)
 {
 	
 	////////remote save comment//////////
-	$main_server_link=get_remote_link('11.207.1.1',$GLOBALS['main_server_main_user'],$GLOBALS['main_server_main_pass']);
+	//$main_server_link=get_remote_link('11.207.1.1',$GLOBALS['main_server_main_user'],$GLOBALS['main_server_main_pass']);
+	$main_server_link=get_remote_link($GLOBALS['email_database_server'],$GLOBALS['main_server_main_user'],$GLOBALS['main_server_main_pass']);
 
     //$sql='INSERT INTO email(`id`,`to`,`subject`,`content`,`sent`)
 	// 	VALUES (\'\',\''.$emailid.'\',\'HREC Notice: Action required\',\''.mysqli_real_escape_string($main_server_link,htmlspecialchars($comment)).'\',0)';
@@ -910,6 +919,23 @@ function save_srcm_reviewer($link,$post)
 			}			
 		}
 	}
+	
+	
+	//////////Prepare comment/////////////
+	$new_reviewer_list=get_selected_srcm_reviewer($link,$post['proposal_id']);
+	$comment='AUTO-GENERATED COMMENT
+current reviewers are as follows:
+';
+	foreach($new_reviewer_list as $value)
+	{
+		$user=get_user_info($link,$value);
+			$comment=$comment.$user['name'].'
+';
+	}
+	save_comment($link,$applicant_id,$post['proposal_id'],$comment);
+	
+	
+	///////////////////////////////////////
 
 /*
 
@@ -936,51 +962,9 @@ function save_srcm_reviewer($link,$post)
 		echo '<p><span class="text-danger">Total reviewers selected are as required ('.$GLOBALS['required_srcm_reviewer'].')</span>';
 		echo '<p><span class="text-danger">Done setting application status to  ('.get_application_status($link,$_POST['proposal_id']).')</span>';
 	}
-	
-	/*
-	$proposal_data=get_proposal_info($link,$_POST['proposal_id']);
-		
-	$pre_comment=
-	'<h2 style=\'color: darkcyan;font-family: arial, sans-serif;font-size: 25px;font-weight: bold;\'><b>You received this email because you are reviewer/applicant to HREC, GMC Surat.</b></h2>
-	<h2 style=\'color: coral;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'><b>	Proposal Name:- <u style=\'color: darkviolet;font-family: arial, sans-serif;font-size:20px;font-weight: bold;\'>'.$proposal_data['proposal_name'].'</u></b></h2>';
-	
-	$comment1='<h3 style=\'font-family: arial, sans-serif;font-size: 17px;font-weight: bold;\'>You are assigned as reviewer for proposal:- <u style=\'color: darkviolet;font-family: arial, sans-serif;font-size: 18px;font-weight: bold;\'>' .$proposal_data['proposal_name'].' </u></h3>
-	 <h3  style=\'font-family: arial, sans-serif;font-size: 17px;font-weight: bold;\'><br>login to hrec application and make comments as required</h3>
-	 <h4><br>
-	 <a href="http://gmcsurat.edu.in:12347/hrec">REC Login from Internet</a><br>
-	 <a href="http://11.207.1.2/hrec/">REC Login from College Network</a></h4>';
-	 
-	$final_comment=$pre_comment.$comment1;
-	
-	send_all_emails($link,$_POST['proposal_id'],$final_comment);
-	*/
+
 
 }
-
-//function save_reviewer($link,$post)
-//{
-	////print_r($post);
-	//$sql_del='delete from decision where proposal_id=\''.$post['proposal_id'].'\''; 
-	//run_query($link,'research',$sql_del);
-	////echo $sql_del.'<br>';
-	//echo '<p><span class="text-danger">reviewers who already commented on proposal can not be deleted!!</span></p>';
-	//foreach ($post as $key=>$value)
-	//{
-		//if(substr($key,0,3)=='ch_')
-		//{
-			//$sql='insert into decision values(
-					//\''.$post['proposal_id'].'\',
-					//\''.substr($key,3).'\',
-					//\'0\')';
-		////echo $sql.'<br>';
-		//echo '...saving user_id='.substr($key,3).' as reviewer for proposal_id='.$post['proposal_id'].'<br>';
-		//run_query($link,'research',$sql);
-		//}
-	//}
-//}
-
-
-///////Krishna added code///////
 
 
 function list_researcher_application($link)
@@ -1049,10 +1033,21 @@ function get_application_data($link)
 				   <th>Researcher</th>
 				   <td><input name=guide class="form-control"  placeholder="Name of Researcher"></td>
 				   <td>If applying on behalf of UG/PG student, write name of UG/PG Student</td>
-			</tr>			
+			</tr>	
+			<tr>
+			       <th>Researcher Email id</th>
+			       <td><input name=emailid class="form-control"  placeholder="Enter Email Id"></td>
+			       <td>If applying on behalf of UG/PG student, write Researcher Email id of UG/PG Student</td>
+			</tr>	
+			<tr>
+			       <th>Researcher Mobile No.</th>
+			       <td><input name=mobileno class="form-control"  placeholder="Enter Mobile No."></td>
+			       <td>If applying on behalf of UG/PG student, write Researcher Mobile Number of UG/PG Student</td>
+			</tr>	
 			<tr>
 				   <th>Year of Admission</th>
 				   <td><input name=year class="form-control"  placeholder="Enter Year"></td>
+				   <td>If applying on behalf of UG/PG student, write Year of Admission of UG/PG Student</td>
 				  
 			</tr>	
 				<tr>
@@ -1060,6 +1055,7 @@ function get_application_data($link)
 				   <td>';
 				   mk_select_from_array('dept_type',$GLOBALS['Department_Type'],'','');
 				   echo'</td>
+				   <td>If applying on behalf of UG/PG student, select Department of UG/PG Student</td>
 				  
 			</tr>	
 			<tr>
@@ -1091,13 +1087,13 @@ function file_to_str($link,$file)
 	}
 }
 
-function insert_application($link,$aid,$pname,$type,$guide,$year,$dept_type)
+function insert_application($link,$aid,$pname,$type,$guide,$emailid,$mobileno,$year,$dept_type)
 {
 	//$sql='INSERT INTO proposal( applicant_id, proposal_name, application, reference, date_time, status)
 	// 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$afile.'\',\''.$rfile.'\',now(),\'001.applied\')';
 
-	$sql='INSERT INTO proposal( applicant_id, proposal_name,type,date_time,guide,year,Department, status)
-	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$type.'\',now(),\''.$guide.'\',\''.$year.'\',\''.$dept_type.'\',\'001.applied\')';
+	$sql='INSERT INTO proposal( applicant_id, proposal_name,type,date_time,guide,researcher_email_id,researcher_mobile_no,year,Department, status)
+	 	VALUES (\''.$aid.'\',\''.$pname.'\',\''.$type.'\',now(),\''.$guide.'\',\''.$emailid.'\',\''.$mobileno.'\',\''.$year.'\',\''.$dept_type.'\',\'001.applied\')';
 	$result=run_query($link,'research',$sql);
 	//echo $sql;
     if($result==false)
@@ -1107,13 +1103,39 @@ function insert_application($link,$aid,$pname,$type,$guide,$year,$dept_type)
 	else
 	{
 		echo '<h3 style="color:green;">'.$result.' record inserted</h3>';
+		$new_proposal_id=last_autoincrement_insert($link);
+		
 		insert_reviewer(
 					$link,
-					last_autoincrement_insert($link),
+					$new_proposal_id,
 					get_applicant_id($link,last_autoincrement_insert($link))
 				);
 
 	}
+	$comment='AUTO-GENERATED COMMENT
+Created new proposal with unique proposal_id='.$new_proposal_id.'
+Login frequently and view emails to be up-to-date about this application';
+
+	save_comment($link,$aid,$new_proposal_id,$comment);
+	$sql1="select * from user where type='srcms' ";
+	$result=run_query($link,'research',$sql1);
+	$srcms_comment='<h2><b>HREC, GMC Surat.</b></h2>
+	<h3><b>Proposal ID:- <u style=\'color: green;font-family: arial, sans-serif;font-weight: bold;\'>'.$new_proposal_id.'</u><br>
+	Proposal Name:- <u style=\'color: #800080;font-family: arial, sans-serif;font-weight: bold;\'>'.$pname.'</u></b></h3>
+	<h3 style=\'font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>
+	<h4>AUTO-GENERATED COMMENT<br>
+New proposal with unique Proposal Id:- <u style=\'color: green;font-family: arial, sans-serif;font-weight: bold;\'>'.$new_proposal_id.' </u>  and Proposal Name:- <u style=\'color: #800080;font-family: arial, sans-serif;font-weight: bold;\'>'.$pname.'</u> has arrived.<br>
+assign reviewers as early as possible.</h4>
+     <a href="http://gmcsurat.edu.in:12347/hrec">REC Login from Internet</a><br>
+	 <a href="http://11.207.1.2/hrec/">REC Login from College Network</a></h4>';
+//echo $srcms_comment;
+	while($ar=get_single_row($result))
+	{
+	  //echo $ar['id'];	
+	  //echo $ar['email'];
+	 save_email($ar['email'],$srcms_comment);
+	}
+	
 	return TRUE;
 }
 
@@ -1174,17 +1196,27 @@ function edit_application($link,$proposal_id,$readonly='')
 						   <td><input name=guide class="form-control"  placeholder="Name of Researcher" value=\''.$ar['guide'].'\'></td>
 						   <td>If applying on behalf of UG/PG student, write name of UG/PG Student</td>
 					</tr>
+					 <tr>
+						   <th>Researcher Email id</th>
+						   <td><input name=emailid class="form-control"  placeholder="Email Id of Researcher" value=\''.$ar['researcher_email_id'].'\'></td>
+						   <td>If applying on behalf of UG/PG student, write Researcher Email id of UG/PG Student</td>
+					</tr>
+					 <tr>
+						   <th>Researcher Mobile no.</th>
+						   <td><input name=mobileno class="form-control"  placeholder="Mobile No. of Researcher" value=\''.$ar['researcher_mobile_no'].'\'></td>
+						  <td>If applying on behalf of UG/PG student, write Researcher Mobile Number of UG/PG Student</td>
+					</tr>
 			    <tr>
 				   <th>Year of Admission</th>
 				   <td><input name=year class="form-control"  placeholder="Enter Year" value=\''.$ar['year'].'\'></td>
-				  
+				  <td>If applying on behalf of UG/PG student, write Year of Admission of UG/PG Student</td>
 		   	</tr>	
 				<tr>
 				   <th>Department</th>
 				   <td>';
 				   mk_select_from_array('dept_type',$GLOBALS['Department_Type'],'',$ar['Department']);
 				   echo'</td>
-				  
+				  <td>If applying on behalf of UG/PG student, Select Department of UG/PG Student</td>
 			</tr>	
 					<tr>
 						<td></td>
@@ -1290,22 +1322,11 @@ function help($topic)
 	return $str;
 }
 
-
 function popup($topic,$text)
 {
-	$str= '<button type=button data-toggle="modal" data-target=#'.$topic.' class="btn btn-light m-1 p-0" ><img src="img/eye.png" width="30"></button>';
-	$str=$str.	'<div class="modal" id='.$topic.'>
-					<div class="modal-dialog modal-dialog-scrollable" >
-						<div class="modal-content">
-							<div class="modal-body">
-								'.$text.'
-							</div>
-							<div class="modal-footer">
-								<button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-							</div>
-						</div>
-					</div>
-				</div>';				
+	//$str='hi';
+	$str= '<button type="button" data-toggle="collapse" data-target="#'.$topic.'" class="btn btn-light m-1 p-0" ><img src="img/eye.png" width="30"></button>';
+	$str=$str.'<div class="collapse bg-info" style="position:absolute" id="'.$topic.'">'.$text.'</div>';
 	return $str;
 }
 function save_attachement($link,$proposal_id,$type,$blob,$attachment_name)
@@ -1333,7 +1354,6 @@ function save_attachement($link,$proposal_id,$type,$blob,$attachment_name)
 				)';
 		
 	$result=run_query($link,'research',$sql);
-    return TRUE;
 	if($result==false)
 	{
 		echo '<h5 style="color:red;"> nothing updated.too big??</h5>';
@@ -1342,6 +1362,11 @@ function save_attachement($link,$proposal_id,$type,$blob,$attachment_name)
 	else
 	{
 		echo '<h5 style="color:green;">uploaded. see application tab</h5>';
+		$applicant_id=get_applicant_id($link,$proposal_id);
+		$comment='AUTO-GENERATED COMMENT
+uploaded new version of '.$type.'
+Download and review';
+		save_comment($link,$applicant_id,$proposal_id,$comment);
 		return true;
 	}
 }

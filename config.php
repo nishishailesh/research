@@ -15,6 +15,7 @@ $GLOBALS['required_ecm_reviewer']=3;
 $GLOBALS['recent_activity_refresh_period']=10000;
 $GLOBALS['recent_activity_data_count']=5;
 $GLOBALS['send_email']=1;
+$GLOBALS['email_database_server']='11.207.1.1';
 $GLOBALS['proposal_type']=array(
 									'PG Dissertation',
 									'ICMR STS',
@@ -33,6 +34,7 @@ $GLOBALS['attachment_type']=array(
 									'Permission from Dean',
 									'Permission from collaborator',
 									'Permission from resource-site',
+									'Departmental Minutes',
 									'Protocol',
 									'Data collection questionnaire',
 									'Assesment tools',
@@ -65,7 +67,7 @@ $GLOBALS['Department_Type']=array(
 									'Obstetrics and Gynecology',
 									'Obstetrics and Gynecology(MCHO)',
 									'Office of The Dean',
-									'Opthalmology',
+									'Ophthalmology',
 									'Orthopedics',
 									'Paediatrics',
 									'Pathology',
@@ -85,7 +87,10 @@ Covering Letter<br>
 Permission from MS<br>
 Permission from Dean<br>
 Permission from collaborator<br>
-Permission from resource-site<br><hr>
+Permission from resource-site<br>
+Departmental Minutes<br>
+References<br>
+Undertakings<br><hr>
 <b>Following documents preferably in word processor/ spreadsheet / presentation format</b><br>
 <hr>
 Protocol<br>
@@ -94,8 +99,7 @@ Assesment tools<br>
 Patient information sheet<br>
 Patient informed consent form<br>
 (To write in ગુજરાતી and हिन्दी Link:-<a target=_blank href="http:\/\/'.$_SERVER['HTTP_HOST'].'/ucode">click here</a>)<br>
-References<br>
-Undertakings<br><hr>
+<hr>
 <b>Following documents in any Suitable format</b><br>
 <hr>
 Others<br>';

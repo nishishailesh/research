@@ -55,7 +55,7 @@ function display_msg($link)
 				echo '</td>';
 				echo '<td>';
 					echo $ar['date_time'];
-					//echo popup('id_'.$ar['proposal_id'].$ar['id'],$ar['comment']);
+					echo popup('id_'.$ar['proposal_id'].$ar['id'],'Proposal:'.$proposal_data['proposal_name'].'<br>comment:<pre>'.$ar['comment'].'</pre>');
 				echo '</td>';				
 			echo '</tr>';
 			//echo 'Proposal ('.$ar['proposal_id'].')'.$proposal_data['proposal_name'].'->Comment by: '.$reviewer_data['name'].' at '.$ar['date_time'].'<br>';
@@ -112,6 +112,7 @@ function display_msg($link)
 				echo '<td>';
 					echo $arr['date_time'];
 					//echo popup('id_'.$arr['proposal_id'].$arr['id'],'<pre>'.$arr['comment'].'</pre>');
+				echo popup('id_'.$arr['proposal_id'].$arr['id'],'Proposal:'.$proposal_data['proposal_name'].'<br>comment:<pre>'.$arr['comment'].'</pre>');
 				echo '</td>';				
 			echo '</tr>';
 			//echo 'Proposal ('.$ar['proposal_id'].')'.$proposal_data['proposal_name'].'->Comment by: '.$reviewer_data['name'].' at '.$ar['date_time'].'<br>';

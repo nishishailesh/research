@@ -30,8 +30,8 @@ echo'<div class="row">
                 <div class="col-sm-7 bg-light mx-auto ">
 		   <table class="table table-bordered">
 			<tr ><th colspan=2 style="background-color:gray;color:white;text-align: center;margin :0 !important;padding :0 !important;"><h4>NOTE</h4></th></tr>
-			<tr><td class="text-primary"><h5>1)</h5></td><td class="text-primary"><h5>To Create New USER Login ID and Password, contact to SRC-HREC Office </h5></td></tr>
-			<tr><td class="text-primary"><h5>2)</h5></td><td class="text-primary"><h5>Forgot the Password, contact to SRC-HREC Office</h5></td></tr>
+			<tr><td class="text-primary"><h5>1)</h5></td><td class="text-primary"><h5>To Create New USER Login ID and Password, contact to HREC Office </h5></td></tr>
+			<tr><td class="text-primary"><h5>2)</h5></td><td class="text-primary"><h5>If you Forget the Password, contact to HREC Office</h5></td></tr>
 			</table>
 		</div>
 

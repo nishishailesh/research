@@ -11,7 +11,8 @@ require_once 'research_common.php';
 	$user_info=get_user_info($link,$_SESSION['login']);
 	//my_print_r($user_info);
 	echo '<form method=post><table class="table table-dark">
-			<tr>
+			<tr><td><button class="btn btn-info m-2" type=submit  name=action value=home><img src="img/home.png"></button>
+					<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'></td>
 				<td>'.$user_info['id'].'</td>
 				<td>'.$user_info['name'].'</td>
 				<td>'.$user_info['type'].'</td>
@@ -21,8 +22,10 @@ require_once 'research_common.php';
 				<td>'.$user_info['department'].'</td>
 				<td>'.$user_info['email'].'</td>
 				<td>'.$user_info['mobile'].'</td>
-				<td><button class="btn btn-info" type=submit formtarget=_blank name=action value=help 
-		formaction="http:\\'.$_SERVER['HTTP_HOST'].'/dokuwiki/doku.php?id=hrec_help:start">Help</button></td>
+				<td>
+				<button class="btn btn-info" type=submit formtarget=_blank name=action value=help 
+		formaction="http:\/\/'.$_SERVER['HTTP_HOST'].'/dokuwiki/doku.php?id=hrec_help:start">Help</button>				
+		</td>
 			</tr>
 		</table></form>';
 		
@@ -74,7 +77,7 @@ require_once 'research_common.php';
 	    
 	    if($_POST['action']=='insert_application')
         {
-			insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$_POST['type'],$_POST['guide'],$_POST['year'],$_POST['dept_type']);
+			insert_application($link,$_POST['applicant_id'],$_POST['proposal_name'],$_POST['type'],$_POST['guide'],$_POST['emailid'],$_POST['mobileno'],$_POST['year'],$_POST['dept_type']);
 			$_SESSION['dsp']='researcher';
 	    }
 
@@ -84,6 +87,8 @@ require_once 'research_common.php';
 			save_application_field($link,$_POST['id'],'proposal_name',$_POST['proposal_name']); 
 			save_application_field($link,$_POST['id'],'type',$_POST['type']); 
 			save_application_field($link,$_POST['id'],'guide',$_POST['guide']); 
+			save_application_field($link,$_POST['id'],'researcher_email_id',$_POST['emailid']);
+			save_application_field($link,$_POST['id'],'researcher_mobile_no',$_POST['mobileno']);
             save_application_field($link,$_POST['id'],'year',$_POST['year']); 
 			save_application_field($link,$_POST['id'],'Department',$_POST['dept_type']); 
 			//view_entire_application_for_applicant($link,$_POST['id']);
@@ -549,7 +554,7 @@ require_once 'research_common.php';
 						
 		echo '<ul class="nav nav-pills">
 			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Applied</a></li>
-			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assigned">Reviewers Assigned (SRC)</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assi">Reviewers Assigned (SRC)</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#reviewed">Reviewed (SRC)</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#sent_to_ecms">Sent to ECMS</a></li>
 		</ul>
@@ -559,7 +564,7 @@ require_once 'research_common.php';
 			echo '<div class="jumbotron tab-pane container active" id=applied>';
 				list_application_status($link,'001.applied','assign_reviewer');
 			echo '</div>';
-			echo '<div class="jumbotron tab-pane container" id=assigned>';
+			echo '<div class="jumbotron tab-pane container" id=assi>';
 				list_application_status($link,'010.srcm_assigned','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=reviewed>';
@@ -689,7 +694,7 @@ require_once 'research_common.php';
 		
 	echo '<ul class="nav nav-pills">
 			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Assign EC Reviewer</a></li>
-			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assigned">EC Reviewers Assigned</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assi">EC Reviewers Assigned</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#ecms_approve">Require ECMS approval</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#print">ECMS Approved</a></li>
 		</ul>
@@ -699,7 +704,7 @@ require_once 'research_common.php';
 			echo '<div class="jumbotron tab-pane container active" id=applied>';
 				list_application_status($link,'030.sent_to_ecms','assign_reviewer');
 			echo '</div>';
-			echo '<div class="jumbotron tab-pane container" id=assigned>';
+			echo '<div class="jumbotron tab-pane container" id=assi>';
 				list_application_status($link,'040.ecm_assigned','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=ecms_approve><p>';		
