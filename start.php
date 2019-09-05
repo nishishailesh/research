@@ -49,7 +49,34 @@ require_once 'research_common.php';
 		}
 		save_comment($link,$_SESSION['login'],$_POST['proposal_id'],$_POST['comment'],$blob,$upload_fname);
 	}	
-   
+
+		//Array
+	//(
+		//[proposal_id] => 105
+		//[session_name] => sn_1576899507
+		//[action] => forward
+	//)
+
+	if($_POST['action']=='forward_proposal')
+	{ 
+		save_application_field($link,$_POST['proposal_id'],'forwarded',0);
+	}
+
+
+/*
+ Array
+(
+    [attachment_id] => 252
+    [session_name] => sn_1576899507
+    [action] => forward_attachment
+)
+*/
+	if($_POST['action']=='forward_attachment')
+	{ 
+		forward_attachment($link,$_POST['attachment_id']);
+	}
+	
+	
    if(
 		$user_info['type']=='researcher' ||
 		$user_info['type']=='srcm' || 

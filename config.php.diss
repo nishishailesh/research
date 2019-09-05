@@ -3,7 +3,7 @@
 //$GLOBALS['main_pass']='root';
 $GLOBALS['main_user_location']='/var/gmcs_config/staff.conf';
 $GLOBALS['user_database']='research';
-$GLOBALS['user_table']='user';
+$GLOBALS['user_table']='dept_user';
 $GLOBALS['user_id']='id';
 $GLOBALS['user_pass']='password';
 $GLOBALS['expiry_period']='+ 6 months';
@@ -105,4 +105,5 @@ Patient informed consent form<br>
 Others<br>';
 $GLOBALS['upload_button_help']='data can not be saved if ...<br>1)file is not given<br>2)file size is zero <br> 3)Type is not selected ';
 
+$GLOBALS['diss_proposal_id_help']='Use proposal ID given on first application.<br>Proposal ID may be found in your email.<br>Meet SRC office, if forgotten';
 ?>

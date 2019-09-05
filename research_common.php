@@ -13,6 +13,7 @@ function my_print_r($a)
 	echo '</pre>';
 }
 
+//this function is never used
 function list_application_for_srcm_assignment($link)
 {
 	$result=run_query($link,'research','select * from proposal where status=\'001.applied\'');
@@ -40,7 +41,7 @@ function list_application_for_srcm_assignment($link)
 
 function list_application_status($link,$status,$action='none',$message='')
 {
-	$result=run_query($link,'research','select * from proposal where status=\''.$status.'\'');
+	$result=run_query($link,'research','select * from proposal where status=\''.$status.'\' and (forwarded!=1 or forwarded is null) ');
 	echo '<table class="table table-striped"><tr><th colspan=10>List of research application with current status of <span class=bg-danger>'.$status.'</span></th></tr>
 			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
 	while($ar=get_single_row($result))
@@ -193,13 +194,199 @@ function list_single_application_with_all_fields($link,$id)
 					<a data-toggle="collapse" href="#xdetail_'.$ar['id'].'">'.$ar['status'].'</a>
 					<div class="collapse" id="xdetail_'.$ar['id'].'">';
 					show_review_status($link,$ar['id']);
-				echo'</div></td>
+				echo'</div>';
+				show_forward_proposal_button($link,$id);
+
+				echo '</td>
 			
 		</tr>';
 	}
 	echo '</table>';
 	list_attachment($link,$id);
 }
+
+function show_forward_proposal_button_original($link,$proposal_id)
+{
+	$user_info=get_user_info($link,$_SESSION['login']);
+	$proposal_info=get_proposal_info($link,$proposal_id);
+	if(!$user_info)
+	{
+		if($proposal_info['forwarded']==1)
+		{
+			echo '<span class="text-danger">not forwarded</span>';
+		}
+		else
+		{
+			echo '<span class="text-success">forwarded</span>';
+		}
+	}	//user is in dept_user, not in user table
+	elseif($proposal_info['forwarded']==1 && $proposal_info['applicant_id']==$_SESSION['login'])
+	{
+	//print_r($user_info);
+	echo '<form method=post>
+			<input type=hidden name=proposal_id value=\''.$proposal_id.'\'>
+			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+			
+			<button class="btn btn-danger btn-block"  
+			type=submit
+			name=action
+			value=forward_proposal>Forward</button>
+		</form>';	
+	}
+}
+
+function show_forward_proposal_button($link,$proposal_id)
+{
+	$user_info=get_user_info($link,$_SESSION['login']);
+	$proposal_info=get_proposal_info($link,$proposal_id);
+	
+	//if dept-user
+	//only message, no action
+	if(!$user_info)
+	{
+		if($proposal_info['forwarded']==1)
+		{
+			echo '<span class="text-danger">not forwarded</span>';
+		}
+		else
+		{
+			echo '<span class="text-success">forwarded</span>';
+		}
+	}
+	//if real user
+	else
+	{
+		//if researcher (=PG Guide)
+		if($proposal_info['applicant_id']==$_SESSION['login'])
+		{
+			if($proposal_info['forwarded']==1)
+			{
+				echo '<form method=post>
+						<input type=hidden name=proposal_id value=\''.$proposal_id.'\'>
+						<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+						
+						<button class="btn btn-danger btn-block"  
+						type=submit
+						name=action
+						value=forward_proposal>Forward</button>
+					</form>';
+			}
+			else
+			{
+				echo '<span class="text-success">forwarded</span>';
+			}			
+		}
+		else
+		{
+			if($proposal_info['forwarded']==1)
+			{
+				echo '<span class="text-danger">not forwarded</span>';
+			}
+			else
+			{
+				echo '<span class="text-success">forwarded</span>';
+			}			
+		}
+	}
+}
+
+
+function show_forward_attachment_button($link,$attachment_id)
+{
+	//show only if user is in user table (not dept_user) and applicant of the proposal(that is PG teacher)
+	$user_info=get_user_info($link,$_SESSION['login']);
+	$applicant_id=get_attachment_applicant_id($link,$attachment_id);
+	$afs=get_attachment_forwarding_status($link,$attachment_id);
+	
+	//user is in dept_user
+	if(!$user_info)
+	{
+		if($afs==1)
+		{
+			echo '<span class="text-danger">not forwarded</span>';
+		}
+		else
+		{
+			echo '<span class="text-success">forwarded</span>';
+		}
+	}
+	//if real user
+	else
+	{
+		//if researcher (=PG Guide)
+		if($applicant_id==$_SESSION['login'])
+		{
+			if($afs==1)
+			{
+				echo '<form method=post>
+						<input type=hidden name=attachment_id value=\''.$attachment_id.'\'>
+						<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+						
+						<button class="btn btn-danger btn-block"  
+						type=submit
+						name=action
+						value=forward_attachment>Forward</button>
+					</form>';	
+			}
+			else
+			{
+				echo '<span class="text-success">forwarded</span>';
+			}			
+		}
+		else
+		{
+			if($afs==1)
+			{
+				echo '<span class="text-danger">not forwarded</span>';
+			}
+			else
+			{
+				echo '<span class="text-success">forwarded</span>';
+			}			
+		}
+	}
+	
+}
+
+function show_forward_attachment_button_original($link,$attachment_id)
+{
+	//show only if user is in user table (not dept_user) and applicant of the proposal(that is PG teacher)
+	$user_info=get_user_info($link,$_SESSION['login']);
+	$applicant_id=get_attachment_applicant_id($link,$attachment_id);
+	$afs=get_attachment_forwarding_status($link,$attachment_id);
+	
+	//user is in dept_user, not in user table	
+	if(!$user_info)
+	{
+		if($afs==1)
+		{
+			echo '<span class="text-danger">not forwarded</span>';
+		}
+		else
+		{
+			echo '<span class="text-success">forwarded</span>';
+		}
+	}
+	elseif($afs==1 && $applicant_id==$_SESSION['login'])	//user is PG teacher
+	{
+	//print_r($user_info);
+	echo '<form method=post>
+			<input type=hidden name=attachment_id value=\''.$attachment_id.'\'>
+			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+			
+			<button class="btn btn-danger btn-block"  
+			type=submit
+			name=action
+			value=forward_attachment>Forward</button>
+		</form>';	
+	}
+	else //not student, not applicant, forwarded
+	{
+		echo 'forwarded';
+	}
+	
+}
+
 
 function list_attachment($link,$proposal_id)
 {
@@ -222,25 +409,79 @@ foreach($GLOBALS['attachment_type'] as $key =>$value)
 		$prev_type='';
 		while($ar=get_single_row($result))
 		{
-			if($prev_type!=$ar['type'])
+			$applicant_id=get_applicant_id($link,$proposal_id);
+
+			if($ar['forwarded']==0)			//all circumstances
 			{
-				echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
+				if($prev_type!=$ar['type'])
+				{
+					echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
+				}
+				echo '<tr>
+						<td>'.$ar['type'].'</td>
+						<td>'.$ar['date_time'].'</td>';
+				echo '<td>';
+				if(strlen($ar['attachment'])>0)
+					{
+					echo_download_button('attachment','attachment','id',$ar['id'],''.$proposal_id.'-'.$ar['type'].'-'.$ar['id'].'-'.$ar['attachment_name']);
+				}
+				show_forward_attachment_button($link,$ar['id']);
+				echo '</td></tr>';
+				$prev_type=$ar['type'];
 			}
-			echo '<tr>
-					<td>'.$ar['type'].'</td>
-					<td>'.$ar['date_time'].'</td>';
-			echo '<td>';
-			if(strlen($ar['attachment'])>0)
-		        {
-		  		echo_download_button('attachment','attachment','id',$ar['id'],''.$proposal_id.'-'.$ar['type'].'-'.$ar['id'].'-'.$ar['attachment_name']);
+			//if 1 and PG teacher =>show download, show forward
+			//if 1 and student =>show download, donot show forward
+			//if 1 and SRCM/ECM/SRCMS/ECMS=> donot show anything			
+			elseif($ar['forwarded']==1 &&  $applicant_id==$_SESSION['login'])	//PG teacher login
+			{
+				if($prev_type!=$ar['type'])
+				{
+					echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
+				}
+				echo '<tr>
+						<td>'.$ar['type'].'</td>
+						<td>'.$ar['date_time'].'</td>';
+				echo '<td>';
+				if(strlen($ar['attachment'])>0)
+					{
+					echo_download_button('attachment','attachment','id',$ar['id'],''.$proposal_id.'-'.$ar['type'].'-'.$ar['id'].'-'.$ar['attachment_name']);
+				}
+				
+				show_forward_attachment_button($link,$ar['id']);
+				echo '</td></tr>';
+				$prev_type=$ar['type'];
 			}
-			echo '</td></tr>';
-			$prev_type=$ar['type'];
+
+			elseif($ar['forwarded']==1 &&  !get_user_info($link,$_SESSION['login']))	//Department login
+			{
+				if($prev_type!=$ar['type'])
+				{
+					echo '<tr><th class="bg-white" colspan=3>'.$ar['type'].'</th></tr>';
+				}
+				echo '<tr>
+						<td>'.$ar['type'].'</td>
+						<td>'.$ar['date_time'].'</td>';
+				echo '<td>';
+				if(strlen($ar['attachment'])>0)
+				{
+					echo_download_button('attachment','attachment','id',$ar['id'],''.$proposal_id.'-'.$ar['type'].'-'.$ar['id'].'-'.$ar['attachment_name']);
+				}
+				show_forward_attachment_button($link,$ar['id']);
+				
+				echo '</td></tr>';
+				$prev_type=$ar['type'];
+			}
+			else
+			{
+				//donot show if not forwarded and you are not PG teacher or PG student
+			}			
 		}	
 	}
 		echo '</table>';
 	
 }
+
+
 
 function display_comment($link,$proposal_id)
 {
@@ -335,19 +576,19 @@ function make_comment($link,$proposal_id)
 19.Rejected:-
 
 				      </textarea>';
-				     if($_SESSION['login']!=$applicant_id )
-				        {
-							
-					     
+				      //Researcher and Department-login can not upload in comment
+				    if($_SESSION['login']!=$applicant_id && get_user_info($link,$_SESSION['login'])!=false)
+				    {
 				      	echo'<tr>	 
 					   <th>File to upload</th>
 					   <td><input type=file name=attachment></td>
 					   <td><20 MB file size is accepted</td>
 					    </tr>';
-				}
-				else{
+					}
+					else
+					{
 					
-				}
+					}
 				echo '<button name=action onclick="return confirm(\'Do you really want to send comment?\');"  value=save_comment class="btn btn-primary btn-block">Send</button>';
 			echo '</form>';
 		echo '</div>';
@@ -500,7 +741,9 @@ function send_all_emails($link,$proposal_id,$comment)
 
 function save_email($emailid,$comment,$sms=0)
 {
-	
+	//echo 'tttt'.$GLOBALS['send_email'].'ttttt';
+	//return;
+	if($GLOBALS['send_email']!=1){return;}
 	////////remote save comment//////////
 	//$main_server_link=get_remote_link('11.207.1.1',$GLOBALS['main_server_main_user'],$GLOBALS['main_server_main_pass']);
 	$main_server_link=get_remote_link($GLOBALS['email_database_server'],$GLOBALS['main_server_main_user'],$GLOBALS['main_server_main_pass']);
@@ -508,9 +751,9 @@ function save_email($emailid,$comment,$sms=0)
     //$sql='INSERT INTO email(`id`,`to`,`subject`,`content`,`sent`)
 	// 	VALUES (\'\',\''.$emailid.'\',\'HREC Notice: Action required\',\''.mysqli_real_escape_string($main_server_link,htmlspecialchars($comment)).'\',0)';
 	
-	if(!$main_server_link){return false;}
-	$sql='INSERT INTO email(`id`,`to`,`subject`,`content`,`sent`,sms,sms_sent)
-	 	VALUES (\'\',\''.$emailid.'\',\'HREC Notice: Action required\',\''.
+	if(!$main_server_link){echo 'can not connect to email server'; return false;}
+	$sql='INSERT INTO email(`to`,`subject`,`content`,`sent`,sms,sms_sent)
+	 	VALUES (\''.$emailid.'\',\'HREC Notice: Action required\',\''.
 	 	mysqli_real_escape_string($main_server_link,$comment).'\',0,\''.$sms.'\',0)';
 	
      //echo $sql;
@@ -659,6 +902,12 @@ function view_entire_application_for_applicant($link,$proposal_id)
 	
 }
 
+function set_application_status($link,$id,$status)
+{
+	$result=run_query($link,'research','update proposal set status=\''.$status.'\' where id=\''.$id.'\'');
+	return $result;
+}
+
 
 function get_application_status($link,$id)
 {
@@ -668,12 +917,25 @@ function get_application_status($link,$id)
 	
 }
 
-function set_application_status($link,$id,$status)
+function get_attachment_forwarding_status($link,$id)
 {
-	$result=run_query($link,'research','update proposal set status=\''.$status.'\' where id=\''.$id.'\'');
-	return $result;
+	$result=run_query($link,'research','select * from attachment where id=\''.$id.'\'');
+	$ar=get_single_row($result);
+	return $ar['forwarded'];	
 }
 
+function get_attachment_applicant_id($link,$id)
+{
+	$result=run_query($link,'research','select * from attachment where id=\''.$id.'\'');
+	$ar=get_single_row($result);
+	return get_applicant_id($link,$ar['proposal_id']);	
+}
+
+function forward_attachment($link,$id)
+{
+	$result=run_query($link,'research','update attachment set forwarded=0 where id=\''.$id.'\'');
+	return $result;
+}
 
 function get_applicant_id($link,$proposal_id)
 {
@@ -988,9 +1250,15 @@ function list_researcher_application($link)
 			<th>Title</th>
 			<th>DateTime</th>
 			<th>Current Status</th>
+			<th>Pending Forward?</th>
 			</tr>';
 	while($ar=get_single_row($result))
 	{
+		//if($ar['forwarded']==1){$forward_need='Yes';$class='class=bg-danger';}else{$forward_need='No';$class='';}
+		$status=get_proposal_upload_comment_status($link,$ar['id']);
+		//if($status['proposal_status']>0 || $status['cnf']>0 || $status['anf']>0 ){$forward_need='Yes';$class='class=bg-danger';}else{$forward_need='No';$class='';}
+		if($status['proposal_status']>0 || $status['anf']>0 ){$forward_need='Yes';$class='class=bg-danger';}else{$forward_need='No';$class='';}
+		
 		$user_info=get_user_info($link,$ar['applicant_id']);
 		echo '<tr>
 			   	<td>
@@ -1003,10 +1271,49 @@ function list_researcher_application($link)
 				<td>'.$ar['proposal_name'].'</td>
 				<td>'.$ar['date_time'].'</td>
 				<td>'.$ar['status'].'</td>
+				<td '.$class.'>'.$forward_need.'</td>
 		</tr>';
 	}
 	echo '</table>';
 	
+}
+
+function get_proposal_upload_comment_status($link,$proposal_id)
+{
+	$ret=array();
+	
+	$proposal_status=0;
+	$proposal_info=get_proposal_info($link,$proposal_id);
+	if($proposal_info['forwarded']==1){$ret['proposal_status']=1;}else{$ret['proposal_status']=0;}
+	//$ret['cnf']=count_not_forwarded_comments($link,$proposal_id);
+	$ret['anf']=count_not_forwarded_uploads($link,$proposal_id);
+	
+	//print_r($ret);
+	return $ret;
+}
+
+
+function count_not_forwarded_comments($link,$proposal_id)
+{
+	$result=run_query($link,'research','select count(id) tnf from comment where proposal_id=\''.$proposal_id.'\' and forwarded=1');
+	$ar=get_single_row($result);
+	//print_r($ar);
+	return $ar['tnf'];
+}
+
+
+function count_not_forwarded_uploads($link,$proposal_id)
+{
+		$sql='select count(id) as anf from attachment 
+				where 
+					proposal_id=\''.$proposal_id.'\' 
+					and
+					forwarded=1'; 
+					
+		$result=run_query($link,'research',$sql);
+		$ar=get_single_row($result);
+		//print_r($ar);
+		return $ar['anf'];
 }
 
 function get_application_data($link)
@@ -1301,7 +1608,7 @@ function upload_attachment($link,$proposal_id)
 
 				echo '</table>
 	</form>';	
-}
+	}
 }
 
 function help($topic)
@@ -1310,7 +1617,7 @@ function help($topic)
 	$str=$str.	'<div class="modal" id='.$topic.'>
 					<div class="modal-dialog modal-dialog-scrollable" >
 						<div class="modal-content">
-							<div class="modal-body">
+							<div class="modal-body text-info">
 								'.$GLOBALS[$topic].'
 							</div>
 							<div class="modal-footer">
