@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -45,10 +45,11 @@ CREATE TABLE `attachment` (
   `date_time` datetime NOT NULL,
   `attachment` mediumblob NOT NULL,
   `attachment_name` varchar(300) NOT NULL,
+  `forwarded` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`),
   CONSTRAINT `attachment_ibfk_1` FOREIGN KEY (`proposal_id`) REFERENCES `proposal` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=224 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=262 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -66,11 +67,12 @@ CREATE TABLE `comment` (
   `date_time` datetime NOT NULL,
   `attachment` mediumblob NOT NULL,
   `attachment_name` varchar(300) NOT NULL,
+  `forwarded` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`,`reviewer_id`),
   KEY `reviewer_id` (`reviewer_id`),
   CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`proposal_id`, `reviewer_id`) REFERENCES `decision` (`proposal_id`, `reviewer_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=566 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=622 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -92,6 +94,21 @@ CREATE TABLE `decision` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
+-- Table structure for table `dept_user`
+--
+
+DROP TABLE IF EXISTS `dept_user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `dept_user` (
+  `id` varchar(40) NOT NULL,
+  `name` varchar(50) NOT NULL,
+  `password` varchar(500) NOT NULL,
+  `expirydate` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Table structure for table `proposal`
 --
 
@@ -110,10 +127,11 @@ CREATE TABLE `proposal` (
   `year` varchar(5) NOT NULL,
   `Department` varchar(25) NOT NULL,
   `status` enum('001.applied','010.srcm_assigned','020.srcm_approved','030.sent_to_ecms','040.ecm_assigned','060.ecm_approved','070.ecms_approved') NOT NULL,
+  `forwarded` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `applicant_id` (`applicant_id`),
   CONSTRAINT `proposal_ibfk_1` FOREIGN KEY (`applicant_id`) REFERENCES `user` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -171,4 +189,4 @@ CREATE TABLE `user.notuse` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-01 23:59:26
+-- Dump completed on 2019-09-06  1:17:30
