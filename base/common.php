@@ -57,6 +57,7 @@ function head($title='blank')
 		  <meta charset="utf-8">
 		  <meta name="viewport" content="width=device-width, initial-scale=1">
 		  <link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+		<link rel="icon" href="favicon.ico">
 		  <script src="bootstrap/jquery-3.3.1.js"></script>
 		  <script src="bootstrap/popper.js"></script>
 		  <script src="bootstrap/js/bootstrap.min.js"></script> 
@@ -144,6 +145,14 @@ function  last_autoincrement_insert($link)
 {
 	return mysqli_insert_id($link);
 }
+
+function my_count_rows($result)
+{
+	return mysqli_num_rows($result);
+}
+
+
+
 ////////////////////////////////////////
 
 ?>

@@ -7,7 +7,7 @@
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+/*!40101 SET NAMES utf8 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -45,11 +45,11 @@ CREATE TABLE `attachment` (
   `date_time` datetime NOT NULL,
   `attachment` mediumblob NOT NULL,
   `attachment_name` varchar(300) NOT NULL,
-  `forwarded` int(11) DEFAULT NULL,
+  `forwarded` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`),
   CONSTRAINT `attachment_ibfk_1` FOREIGN KEY (`proposal_id`) REFERENCES `proposal` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=262 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=2771 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -67,12 +67,12 @@ CREATE TABLE `comment` (
   `date_time` datetime NOT NULL,
   `attachment` mediumblob NOT NULL,
   `attachment_name` varchar(300) NOT NULL,
-  `forwarded` int(11) DEFAULT NULL,
+  `forwarded` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`,`reviewer_id`),
   KEY `reviewer_id` (`reviewer_id`),
   CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`proposal_id`, `reviewer_id`) REFERENCES `decision` (`proposal_id`, `reviewer_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=622 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=4553 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -104,8 +104,23 @@ CREATE TABLE `dept_user` (
   `id` varchar(40) NOT NULL,
   `name` varchar(50) NOT NULL,
   `password` varchar(500) NOT NULL,
-  `expirydate` date NOT NULL
+  `expirydate` date NOT NULL,
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `email`
+--
+
+DROP TABLE IF EXISTS `email`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `email` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `email_content` varchar(10000) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -124,14 +139,14 @@ CREATE TABLE `proposal` (
   `guide` varchar(50) NOT NULL,
   `researcher_email_id` varchar(100) NOT NULL,
   `researcher_mobile_no` bigint(15) NOT NULL,
-  `year` varchar(5) NOT NULL,
+  `year` int(5) NOT NULL,
   `Department` varchar(25) NOT NULL,
-  `status` enum('001.applied','010.srcm_assigned','020.srcm_approved','030.sent_to_ecms','040.ecm_assigned','060.ecm_approved','070.ecms_approved') NOT NULL,
-  `forwarded` int(11) DEFAULT NULL,
+  `status` enum('001.applied','010.srcm_assigned','020.srcm_approved','030.sent_to_ecms','040.ecm_assigned','060.sent_to_committee','070.ecms_approved') NOT NULL,
+  `forwarded` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `applicant_id` (`applicant_id`),
   CONSTRAINT `proposal_ibfk_1` FOREIGN KEY (`applicant_id`) REFERENCES `user` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=110 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=272 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -150,7 +165,7 @@ CREATE TABLE `user` (
   `subtype` enum('','UG','PG','Faculty','Intern','PHD') NOT NULL,
   `Institute` varchar(50) NOT NULL,
   `year_of_admission` int(11) DEFAULT NULL,
-  `department` enum('N/A','Anatomy','Anesthesiology','Biochemistry','Burns and Plastic Surgery','Cardiology','Community Medicine','Dentistry','Dermatology','Emergency Medicine','Forensic Medicine','General Surgery','Immunohematology and Blood Transfusion','Infectious Disease','Medicine','Microbiology','Nephrology','Neurology','Neurosurgery','Obstetrics and Gynacology','Opthalmology','Orthopaedics','Otorhinolaryngiology','Paediatrics','Pathology','Peadiatric Surgery','Pharmacology','Physiology','Psychiatry','Pulmonary Medicine','Radiology','Radiotherapy','Urology','PSM','Skin & V.D.','ENT','Surgery','Other') NOT NULL,
+  `department` enum('N/A','Anatomy','Anesthesiology','Biochemistry','Burns and Plastic Surgery','Cardiology','Community Medicine','Dentistry','Dermatology','Emergency Medicine','Forensic Medicine','General Surgery','Immunohematology and Blood Transfusion','Infectious Disease','Medicine','Microbiology','Nephrology','Neurology','Neurosurgery','Obstetrics and Gynacology','Opthalmology','Orthopaedics','Otorhinolaryngiology','Paediatrics','Pathology','Peadiatric Surgery','Pharmacology','Physiology','Psychiatry','Pulmonary Medicine','Radiology','Radiotherapy','Urology','PSM','ENT','Other') NOT NULL,
   `email` varchar(100) NOT NULL,
   `mobile` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
@@ -179,6 +194,38 @@ CREATE TABLE `user.notuse` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `view_info_data`
+--
+
+DROP TABLE IF EXISTS `view_info_data`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `view_info_data` (
+  `id` int(11) NOT NULL,
+  `info` varchar(100) NOT NULL,
+  `Fields` varchar(2000) NOT NULL,
+  `sql` varchar(1000) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Table structure for table `view_info_data1`
+--
+
+DROP TABLE IF EXISTS `view_info_data1`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `view_info_data1` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `info` varchar(100) NOT NULL,
+  `Fields` varchar(2000) NOT NULL,
+  `sql` varchar(1000) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
@@ -189,4 +236,4 @@ CREATE TABLE `user.notuse` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2019-09-06  1:20:00
+-- Dump completed on 2020-02-13 22:29:59

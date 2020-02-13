@@ -231,6 +231,7 @@ require_once 'research_common.php';
 		if($_POST['action']=='send_to_ecms')
 		{
 			set_application_status($link,$_POST['proposal_id'],'030.sent_to_ecms');
+			save_email_for_send_to_ecms($link,$_POST['proposal_id']);
 			$_SESSION['dsp']='srcms';
 		}
 
@@ -289,7 +290,7 @@ require_once 'research_common.php';
 			save_approve($link,$_SESSION['login'],$_POST['proposal_id'],$_POST['comment']);
 			if(pending_review($link,$_POST['proposal_id'],'ecm')==0)
 			{
-					set_application_status($link,$_POST['proposal_id'],'060.ecm_approved');
+					set_application_status($link,$_POST['proposal_id'],'060.sent_to_committee');
 			}
 			$_SESSION['dsp']='ecm';
 		}	
@@ -345,7 +346,10 @@ require_once 'research_common.php';
 			//print_r($list_of_reviewer);
 			foreach($list_of_reviewer as $value)
 			{
-				save_unapprove_ec($link,$value,$_POST['proposal_id'],'Sent back for re-review');
+				//save_unapprove_ec($link,$value,$_POST['proposal_id'],'Sent back for re-review');
+				$comment='Sent back for re-review
+             Reviewers are requested to make comment on online proposal about suggestions made in meeting';				
+				save_unapprove_ec($link,$value,$_POST['proposal_id'],$comment);
 			}
 			
 			set_application_status($link,$_POST['proposal_id'],'040.ecm_assigned');
@@ -580,15 +584,17 @@ require_once 'research_common.php';
 		}
 						
 		echo '<ul class="nav nav-pills">
-			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Applied</a></li>
+			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#dashboard">Dashboard</a></li>
+			<li class="nav-item"><a class="nav-link " data-toggle="pill" href="#applied">Applied</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assi">Reviewers Assigned (SRC)</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#reviewed">Reviewed (SRC)</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#sent_to_ecms">Sent to ECMS</a></li>
+			
 		</ul>
 		
 		<div class="tab-content">';
 		
-			echo '<div class="jumbotron tab-pane container active" id=applied>';
+			echo '<div class="jumbotron tab-pane container" id=applied>';
 				list_application_status($link,'001.applied','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=assi>';
@@ -599,11 +605,32 @@ require_once 'research_common.php';
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=sent_to_ecms>';
 				list_application_status($link,'030.sent_to_ecms');
-			echo '</div>';			
+			echo '</div>';
+			echo '<div class="jumbotron tab-pane container  active" id=dashboard>';
+				if(isset($_POST['action']))
+				{
+					if( $_POST['action']=='display_data')
+					{
+					//echo 'ssss';
+					$result=prepare_result_from_view_data_id($link,$_POST['id']);
+					
+					$_SESSION['dsp']='srcms';
+					}
+				}
+				show_dashboard($link);
+				
+			echo '</div>';						
 		echo '</div>';//for tab-content
 		
 		echo '</div>';//for srcms collapsible
-	}
+	    echo '
+				<form action=today_activity.php method=post target=_blank>
+				<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>
+						<button name=today_activity> Today Activity</button>
+				</form>';
+		
+		}
+	
 
 	if($user_info['type']=='ecm' || $user_info['type']=='ecms')
 	{	
@@ -712,36 +739,67 @@ require_once 'research_common.php';
 		
 		if($_POST['action']=='view')
 		{
+		echo '<ul class="nav nav-pills">
+		<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#application">Application</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#review_status">Review Status</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#comment">Comments (ECM)</a></li>
+	</ul>';
+	
+	echo '<div class="tab-content">';	
+
+		echo '<div class="jumbotron tab-pane container active" id=application>';
 			list_single_application_with_all_fields($link,$_POST['proposal_id']);
 			$_SESSION['dsp']='ecms';
-		}
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=review_status>';
+			show_review_status($link,$_POST['proposal_id']);
+		echo '</div>';
+		echo '<div class="jumbotron tab-pane container" id=comment>';
+			display_comment($link,$_POST['proposal_id']);
+		echo '</div>';
+	 echo '</div>';//for tab-content
+   }
 
 	
 		
 		
 	echo '<ul class="nav nav-pills">
-			<li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#applied">Assign EC Reviewer</a></li>
+	        <li class="nav-item"><a class="nav-link active" data-toggle="pill" href="#dashboard">Dashboard</a></li>
+			<li class="nav-item"><a class="nav-link " data-toggle="pill" href="#applied">Assign EC Reviewer</a></li>
 			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#assi">EC Reviewers Assigned</a></li>
-			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#ecms_approve">Require ECMS approval</a></li>
-			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#print">ECMS Approved</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#ecms_approve">Require EC approval</a></li>
+			<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#print">EC Approve</a></li>
 		</ul>
 		
 		<div class="tab-content">';
 		
-			echo '<div class="jumbotron tab-pane container active" id=applied>';
+			echo '<div class="jumbotron tab-pane container " id=applied>';
 				list_application_status($link,'030.sent_to_ecms','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=assi>';
 				list_application_status($link,'040.ecm_assigned','assign_reviewer');
 			echo '</div>';
 			echo '<div class="jumbotron tab-pane container" id=ecms_approve><p>';		
-				list_application_status_for_ecms_final($link,'060.ecm_approved');
+				list_application_status_for_ecms_final($link,'060.sent_to_committee');
 			echo '</p></div>';
 			echo '<div class="jumbotron tab-pane container" id=print>';
 			//echo 'Print approval here';
 				print_approval_latter($link,'070.ecms_approved','print.php','Print Approval Letter');
 			echo '</div>';
-			
+			echo '<div class="jumbotron tab-pane container  active" id=dashboard>';
+				if(isset($_POST['action']))
+				{
+					if( $_POST['action']=='display_data')
+					{
+					//echo 'ssss';
+					$result=prepare_result_from_view_data_id($link,$_POST['id']);
+					
+					$_SESSION['dsp']='ecms';
+					}
+				}
+				show_dashboard($link);
+				
+			echo '</div>';				
 		echo '</div>';//for tab-content
 		
 		echo '</div>';//for ecms collapsible
@@ -757,7 +815,7 @@ tail();
 //{
 //	my_print_r($ar);
 //}
-//my_print_r($_POST);
+//print_r($_POST);
 //my_print_r($_FILES);
 //my_print_r($_SESSION);
 //my_print_r($_SERVER);

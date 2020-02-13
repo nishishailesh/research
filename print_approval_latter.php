@@ -1,10 +1,8 @@
 <?php
 //session_start();\
-
 $nojunk='';
 require_once 'base/verify_login.php';
 require_once 'research_common.php';
-
 require_once('tcpdf/tcpdf.php');
 //require_once('Numbers/Words.php');
 
@@ -84,13 +82,6 @@ $action=$_POST['action'];
 	     $pdf->AddPage();
 	     $pdf->writeHTML($myStr, true, false, true, false, '');
 	    $pdf->Output('print_approval_latter.pdf', 'I');
-	 
-
-
-
-
-
-
 
 ?>
 

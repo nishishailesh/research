@@ -5,6 +5,11 @@ function get_user_info($link,$id)
 	$result=run_query($link,'research','select * from user where id=\''.$id.'\'');
 	return get_single_row($result);
 }
+function get_user_info1($link,$id)
+{
+	$result=run_query($link,'research','select * from proposal where id=\''.$id.'\'');
+	return get_single_row($result);
+}
 
 function my_print_r($a)
 {
@@ -46,6 +51,7 @@ function list_application_status($link,$status,$action='none',$message='')
 			<tr><th>proposal id</th><th>Applicant id/Name/Department</th><th>Title</th><th>DateTime</th><th>Status</th></tr>';
 	while($ar=get_single_row($result))
 	{
+		
 		//$user_info=get_user_info($link,$ar['applicant_id']);
 		echo '<tr>
 				<td>';
@@ -65,7 +71,7 @@ function list_application_status($link,$status,$action='none',$message='')
 		echo ' </td>';
 		
 		echo '<td>';
-			echo_applicant_info_popup($link,get_applicant_id($link,$ar['id']));
+			echo_applicant_info_popup($link,get_applicant_id($link,$ar['id']),$ar['id']);
 		echo '</td>';
 		
 				//<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
@@ -181,7 +187,7 @@ function list_single_application_with_all_fields($link,$id)
 		echo '<tr>
 				<td>'.$ar['id'].'</td>
 				<td>';
-						echo_applicant_info_popup($link,$ar['applicant_id']);
+						echo_applicant_info_popup($link,$ar['applicant_id'],$id);
 				echo '</td>
 				<td>'.$ar['proposal_name'].'</td>
 				<td>'.$ar['type'].'</td>
@@ -505,7 +511,7 @@ function display_comment($link,$proposal_id)
 			echo '<h5 class="d-inline"><span class="badge badge-danger rounded-circle">APPLICANT</span></h5>';
 		}
 			
-		if(substr($ar['comment'],-10)=='[APPROVED]')
+		if(substr($ar['comment'],-11)=='[FORWARDED]')
 		{
 			echo 	'<pre><span class="d-block pl-5 text-success">'.htmlspecialchars($ar['comment']).'<h5>&#10004;&#10004;&#10004;</h5></span></pre>';
 		}
@@ -616,7 +622,7 @@ function save_comment($link,$reviewer_id,$proposal_id,$comment,$attachment='',$a
 			values(
 			\''.$proposal_id.'\',
 			\''.$reviewer_id.'\',
-			\''.mysqli_real_escape_string($link,htmlspecialchars($comment)).'\',
+			\''.my_safe_string($link,htmlspecialchars($comment)).'\',
 			now(),
 			\''.$attachment.'\',
 			\''.$attachment_name.'\'
@@ -754,7 +760,7 @@ function save_email($emailid,$comment,$sms=0)
 	if(!$main_server_link){echo 'can not connect to email server'; return false;}
 	$sql='INSERT INTO email(`to`,`subject`,`content`,`sent`,sms,sms_sent)
 	 	VALUES (\''.$emailid.'\',\'HREC Notice: Action required\',\''.
-	 	mysqli_real_escape_string($main_server_link,$comment).'\',0,\''.$sms.'\',0)';
+	 	my_safe_string($main_server_link,$comment).'\',0,\''.$sms.'\',0)';
 	
      //echo $sql;
 	if(!run_query($main_server_link,'email',$sql))
@@ -776,7 +782,7 @@ function reviewer_assign_email()
 function approve($link,$proposal_id)
 {
 	echo '<div class="jumbotron" >';
-	echo '<h3 class="bg-success">Comment and Approve</h3>';
+	echo '<h3 class="bg-success">Comment and Forward</h3>';
 
 		echo '<div class="border border-secondary" >';
 		$ri=get_user_info($link,$_SESSION['login']);
@@ -788,7 +794,7 @@ function approve($link,$proposal_id)
 				echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
 				echo '<input type=hidden name=proposal_id value=\''.$proposal_id.'\'>';
 				echo '<textarea class="form-control" name=comment></textarea>';
-				echo '<button  onclick="return confirm(\'Do you really want to approve application?\');" name=action value=approve class="btn btn-primary btn-block">Approve</button>';
+				echo '<button  onclick="return confirm(\'Do you really want to approve application?\');" name=action value=approve class="btn btn-primary btn-block">Forward</button>';
 			echo '</form>';
 		echo '</div>';
 		
@@ -813,7 +819,7 @@ function pending_review($link,$proposal_id)
 
 function save_approve($link,$reviewer_id,$proposal_id,$comment)
 {	
-	save_comment($link,$reviewer_id,$proposal_id,$comment.' [APPROVED]','','');
+	save_comment($link,$reviewer_id,$proposal_id,$comment.' [FORWARDED]','','');
 	
 	$sql='update decision 
 			set approval=1
@@ -1006,12 +1012,12 @@ function count_selected_srcm_reviewer($link,$proposal_id)
 function list_srcm_reviewer($link,$proposal_id)
 {
 	$applicant_id=get_applicant_id($link,$proposal_id);
-	
+
 	$sql_eligible_reviewer='select * from user where 
 								(type=\'srcm\' or type=\'srcms\')
 								and
-								id!=\''.$applicant_id.'\'';
-								
+								id!=\''.$applicant_id.'\' order by name';
+
 	$result=run_query($link,'research',$sql_eligible_reviewer);
 
 	$selected_reviewer=get_selected_srcm_reviewer($link,$proposal_id);
@@ -1021,13 +1027,13 @@ function list_srcm_reviewer($link,$proposal_id)
 			<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
 
 	echo '<table class="table table-striped table-success">
-			<tr><th>reviwer</th><th>Reviewer id/Name/Department</th><th>Type</th></tr>';
-			
+			<tr><th>reviewer</th><th>Reviewer id/Name/Department</th><th>Type</th></tr>';
+
 	while($ar=get_single_row($result))
 	{
 		$user_info=get_user_info($link,$ar['id']);
 		if(in_array($ar['id'],$selected_reviewer)){$checked='checked';}else{$checked='';}
-		
+
 		echo '<tr>
 				<td>
 						<input class=sr id=ch_'.$ar['id'].' name=ch_'.$ar['id'].' type=checkbox '.$checked.'>
@@ -1084,7 +1090,8 @@ function show_review_status($link,$proposal_id)
 		      }
 		    }
 		  else{			  
-			    $ap='approved';
+			    $ap='Forwarded';
+			    //$ap='approved';
 			   }   
 		
 		//echo $ar['reviewer_id'];
@@ -1184,14 +1191,15 @@ function save_srcm_reviewer($link,$post)
 	
 	
 	//////////Prepare comment/////////////
-	$new_reviewer_list=get_selected_srcm_reviewer($link,$post['proposal_id']);
-	$comment='AUTO-GENERATED COMMENT
+	$new_reviewer_list=get_only_srcm_reviewer($link,$post['proposal_id']);
+$comment='AUTO-GENERATED COMMENT
 current reviewers are as follows:
+(Note:Donot call directly on mobile of srcms/ecms)
 ';
 	foreach($new_reviewer_list as $value)
 	{
 		$user=get_user_info($link,$value);
-			$comment=$comment.$user['name'].'
+			$comment=$comment.$user['name'].'('.$user['type'].')
 ';
 	}
 	save_comment($link,$applicant_id,$post['proposal_id'],$comment);
@@ -1353,7 +1361,7 @@ function get_application_data($link)
 			</tr>	
 			<tr>
 				   <th>Year of Admission</th>
-				   <td><input name=year class="form-control"  placeholder="Enter Year"></td>
+				   <td><input name=year pattern="^20[0-9][0-9]$"class="form-control"  placeholder="Enter Year As 20YY"></td>
 				   <td>If applying on behalf of UG/PG student, write Year of Admission of UG/PG Student</td>
 				  
 			</tr>	
@@ -1444,6 +1452,29 @@ assign reviewers as early as possible.</h4>
 	}
 	
 	return TRUE;
+}
+
+function save_email_for_send_to_ecms($link,$proposal_id)
+{
+	$pinfo=get_proposal_info($link,$proposal_id);
+	$sql1="select * from user where type='ecms' ";
+	$result=run_query($link,'research',$sql1);
+	$ecms_comment='<h2><b>HREC, GMC Surat.</b></h2>
+	<h3><b>Proposal ID:- <u style=\'color: green;font-family: arial, sans-serif;font-weight: bold;\'>'.$proposal_id.'</u><br>
+	Proposal Name:- <u style=\'color: #800080;font-family: arial, sans-serif;font-weight: bold;\'>'.$pinfo['proposal_name'].'</u></b></h3>
+	<h3 style=\'font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>
+	<h4>AUTO-GENERATED COMMENT<br>
+Proposal with unique Proposal Id:- <u style=\'color: green;font-family: arial, sans-serif;font-weight: bold;\'>'.$proposal_id.' </u>  and Proposal Name:- <u style=\'color: #800080;font-family: arial, sans-serif;font-weight: bold;\'>'.$pinfo['proposal_name'].'</u> has arrived.<br>
+assign EC reviewers as early as possible.</h4>
+     <a href="http://gmcsurat.edu.in:12347/hrec">REC Login from Internet</a><br>
+	 <a href="http://11.207.1.2/hrec/">REC Login from College Network</a></h4>';
+//echo $srcms_comment;
+	while($ar=get_single_row($result))
+	{
+	  //echo $ar['id'];	
+	  //echo $ar['email'];
+	 save_email($ar['email'],$ecms_comment);
+	}
 }
 
 function insert_reviewer($link,$proposal_id,$reviewer_id)
@@ -1698,10 +1729,11 @@ function mk_select_from_array($name, $select_array,$disabled='',$default='')
 }
 
 
-function echo_applicant_info_popup($link,$applicant_id)
+function echo_applicant_info_popup($link,$applicant_id,$proposal_id)
 {
 	$user_info=get_user_info($link,$applicant_id);
-	
+	$user_info1=get_user_info1($link,$proposal_id);
+	//echo $proposal_id;
 	echo '<div>
 		<span class="text-primary">'.$applicant_id.'</span>/
 		<span class="text-danger">'.$user_info['name'].'</span>/
@@ -1711,7 +1743,9 @@ function echo_applicant_info_popup($link,$applicant_id)
 		<span class="text-primary">'.$user_info['Institute'].'</span>		
 		<span class="text-danger">'.$user_info['year_of_admission'].'</span>/
 		<span class="text-primary">'.$user_info['email'].'</span>/
-		<span class="text-danger">'.$user_info['mobile'].'</span>	</div>';
+		<span class="text-danger">'.$user_info['mobile'].'</span>/
+		<span class="text-primary">'.$user_info1['guide'].'</span>
+			</div>';
 }
 
 ///////For EC
@@ -1773,7 +1807,6 @@ function get_selected_ecm_reviewer($link,$proposal_id)
 	//my_print_r($ret);
 	return $ret;
 }
-
 function get_only_ecm_reviewer($link,$proposal_id)
 {
 	$applicant_id=get_applicant_id($link,$proposal_id);
@@ -1851,11 +1884,23 @@ function save_ecm_reviewer($link,$post)
 			}			
 		}
 	}
- 
+ //////////Prepare comment/////////////
+	$new_reviewer_list=get_only_ecm_reviewer($link,$post['proposal_id']);
+$comment='AUTO-GENERATED COMMENT
+current reviewers are as follows:
+(Note:Donot call directly on mobile of srcms/ecms)
+';
+	foreach($new_reviewer_list as $value)
+	{
+		    $user=get_user_info($link,$value);
+			$comment=$comment.$user['name'].'('.$user['type'].')
+';
+	}
+	save_comment($link,$applicant_id,$post['proposal_id'],$comment);
 	
-	   ///////
-     //ecm/
-    ///////
+	
+	///////////////////////////////////////
+ 
 	$tot_ecm=count_selected_ecm_reviewer($link,$_POST['proposal_id']);
 	echo '<p><span class="text-danger">Total reviewers selected='.$tot_ecm.'</span>';
     if($tot_ecm<$GLOBALS['required_ecm_reviewer'])
@@ -1869,9 +1914,9 @@ function save_ecm_reviewer($link,$post)
 		echo '<p><span class="text-danger">Total reviewers selected are as required ('.$GLOBALS['required_ecm_reviewer'].')</span>';
 		echo '<p><span class="text-danger">Done setting application status to  ('.get_application_status($link,$_POST['proposal_id']).')</span>';
 	}
-	$proposal_data=get_proposal_info($link,$_POST['proposal_id']);
+	//$proposal_data=get_proposal_info($link,$_POST['proposal_id']);
 		
-	$pre_comment=
+	/*$pre_comment=
 	'<h2 style=\'color: darkcyan;font-family: arial, sans-serif;font-size: 25px;font-weight: bold;\'><b>You received this email because you are reviewer/applicant to HREC, GMC Surat.</b></h2>
 	<h2 style=\'color: coral;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'><b>	Proposal Name:- <u style=\'color: darkviolet;font-family: arial, sans-serif;font-size: 20px;font-weight: bold;\'>'.$proposal_data['proposal_name'].'</u></b></h2>';
 	
@@ -1883,7 +1928,10 @@ function save_ecm_reviewer($link,$post)
 	 
 	$final_comment=$pre_comment.$comment1;
 	
-	send_all_emails($link,$_POST['proposal_id'],$final_comment);
+	send_all_emails($link,$_POST['proposal_id'],$final_comment);*/
+
+	
+
 
 }
 
@@ -1915,7 +1963,7 @@ function view_entire_application_ecm($link,$proposal_id)
 		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#review_status">Review Status</a></li>
 		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#comment">Comments (ECM)</a></li>
 		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#make_comment">Make Comment (ECM)</a></li>
-		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#approve">Approve Application (ECM)</a></li>
+		<li class="nav-item"><a class="nav-link" data-toggle="pill" href="#approve">Forward To EC</a></li>
 	</ul>';
 	
 	echo '<div class="tab-content">';	
@@ -1991,9 +2039,6 @@ function gate_approval_latter_pdf($link,$user_info,$ar,$action)
 		$add2=' ';
 		
 	}*/
-	
-  
-
 	
 echo'
 <table  width="100%" align="center">
@@ -2196,7 +2241,7 @@ function list_application_status_for_ecms_final($link,$status)
 		echo ' </td>';
 		
 		echo '<td>';
-			echo_applicant_info_popup($link,get_applicant_id($link,$ar['id']));
+			echo_applicant_info_popup($link,get_applicant_id($link,$ar['id']),$ar['id']);
 		echo '</td>';
 		
 				//<td><span class="text-primary">'.$ar['applicant_id'].'</span>/<span class="text-danger">'.$user_info['name'].'</span>/<span class="text-primary">'.$user_info['department'].'</span></td>
@@ -2232,5 +2277,354 @@ function save_unapprove_ec($link,$reviewer_id,$proposal_id,$comment)
 	}
 }
 
+function show_dashboard($link)
+{
+	get_sql($link);
+	
+}
+
+function get_sql($link)
+{
+        if(!$result=run_query($link,'research','select * from view_info_data')){return false;}
+
+        echo '
+        <table border=1 class="table-striped table-hover"><tr><th colspan=20>Select the data to view</th></tr>';
+
+        $first_data='yes';
+
+        while($array=get_single_row($result))
+        {
+                if($first_data=='yes')
+                {
+                        echo '<tr>';
+                        foreach($array as $key=>$value)
+                        {
+							    if($key!='sql'){
+                                echo '<th bgcolor=lightgreen>'.$key.'</th>';}
+                        }
+                        echo '</tr>';
+                        $first_data='no';
+                }
+
+				echo'<form style="margin-bottom:0;" method=post>';
+                echo '<tr>';
+                foreach($array as $key=>$value)
+                {
+					echo'<input type=hidden name=session_name value=\''.$_SESSION['login'].'\'>';
+					echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';
+                       if($key=='id')
+                        { 
+                         echo '<td>
+							<input type=hidden name=action value=display_data>
+							<button class="btn btn-danger" type=submit name=id value=\''.$value.'\'>'.$value.'</button></td>';
+                        }
+                        elseif($key=='sql'){}
+                        elseif($key=='Fields')
+                        {
+                                echo '<td class="badge badge-warning">'.$value.'</td>';							
+						}
+                        else
+                        {
+                                echo '<td>'.$value.'</td>';
+                        }
+                }
+				echo '</tr>';
+				echo '</form>';
+
+        }
+        echo '</table>';
+    
+}
+function prepare_result_from_view_data_id($link,$id)
+{
+
+         if(!$result_id=run_query($link,'research','select * from view_info_data where id=\''.$id.'\''))
+         {
+			 //echo '<h1>Problem</h1>';
+		 }
+		 else
+		 {
+			// echo '<h1>Success</h1>';
+		 }
+        $array_id=get_single_row($result_id);
+
+        $sql=$array_id['sql'].'';
+        $info=$array_id['info'];
+
+		//echo $sql.'<br>';
+        ////modify sql
+        //print_r($_POST);
+        
+        if(isset($_POST['__p1'])) 
+        {
+			if(strlen($_POST['__p1'])>0)
+			{
+				$sql=str_replace('__p1',$_POST['__p1'],$sql);			
+				$p1=$_POST['__p1'];
+			}
+			else
+			{
+				$p1='';
+			}
+		}
+		else
+		{
+			$p1='';
+		}
+
+
+        if(isset($_POST['__p2'])) 
+        {
+			if(strlen($_POST['__p2'])>0)
+			{
+				$sql=str_replace('__p2',$_POST['__p2'],$sql);			
+				$p2=$_POST['__p2'];
+			}
+			else
+			{
+				$p2='';
+			}
+		}
+		else
+		{
+			$p2='';
+		}
+
+        if(isset($_POST['__p3'])) 
+        {
+			if(strlen($_POST['__p3'])>0)
+			{
+				$sql=str_replace('__p3',$_POST['__p3'],$sql);			
+				$p3=$_POST['__p3'];
+			}
+			else
+			{
+				$p3='';
+			}
+		}
+		else
+		{
+			$p3='';
+		}
+
+        if(isset($_POST['__p4'])) 
+        {
+			if(strlen($_POST['__p4'])>0)
+			{
+				$sql=str_replace('__p4',$_POST['__p4'],$sql);			
+				$p4=$_POST['__p4'];
+			}
+			else
+			{
+				$p4='';
+			}
+		}
+		else
+		{
+			$p4='';
+		}
+        //////////////
+		//echo $sql;
+
+
+        if(!$result=run_query($link,'research',$sql))
+        {
+			 echo '<h1>Problem</h1>';
+		}
+		 else
+		 {
+			 //echo '<h1>Success</h1>';
+		 }
+
+
+		echo_export_button($link,$id,$p1,$p2,$p3,$p4);
+		display_sql_result_data($result);
+
+}
+
+
+function echo_export_button($link,$id,$p1,$p2,$p3,$p4)
+{
+	echo '<form method=post class="d-inline" action=export.php>';
+		echo '<input type=hidden name=session_name value=\''.$_SESSION['login'].'\'>';
+		echo '<input type=hidden name=session_name value=\''.$_POST['session_name'].'\'>';			
+		echo '<input type=hidden name=id value=\''.$id.'\'>';
+		echo '<input type=hidden name=__p1 value=\''.$p1.'\'>		
+			<input type=hidden name=__p2 value=\''.$p2.'\'>		
+			<input type=hidden name=__p3 value=\''.$p3.'\'>		
+			<input type=hidden name=__p4 value=\''.$p4.'\'>		
+			
+			<button class="btn btn-info"  
+			formtarget=_blank
+			type=submit
+			name=action
+			value=export>Export</button>
+		</form>';
+}
+	
+function display_sql_result_data($result)
+{
+	echo '<button data-toggle="collapse" data-target="#sql_result" class="btn btn-dark">Show/Hide Result</button>';
+	echo '<div id="sql_result" class="collapse show">';		
+		
+	
+       echo '<table border=1 class="table-striped table-hover">';
+				
+        $first_data='yes';
+
+        while($array=get_single_row($result))
+        {
+			//print_r($array);
+                if($first_data=='yes')
+                {
+                        echo '<tr bgcolor=lightgreen>';
+                        foreach($array as $key=>$value)
+                        {
+                                echo '<th>'.$key.'</th>';
+                        }
+                        echo '</tr>';
+                        $first_data='no';
+                }
+                foreach($array as $key=>$value)
+                {
+                        echo '<td>'.$value.'</td>';
+                }
+                echo '</tr>';
+
+        }
+        echo '</table>';	
+	echo '</div>';	
+	
+}
+//111119500892
+//one
+
+function prepare_result_for_export($link,$id)
+{
+
+         if(!$result_id=run_query($link,'research','select * from view_info_data where id=\''.$id.'\''))
+         {
+			 //echo '<h1>Problem</h1>';
+		 }
+		 else
+		 {
+			// echo '<h1>Success</h1>';
+		 }
+        $array_id=get_single_row($result_id);
+
+        $sql=$array_id['sql'].'';
+        $info=$array_id['info'];
+
+		//echo $sql.'<br>';
+        ////modify sql
+        //print_r($_POST);
+        
+        if(isset($_POST['__p1'])) 
+        {
+			if(strlen($_POST['__p1'])>0)
+			{
+				$sql=str_replace('__p1',$_POST['__p1'],$sql);			
+				$p1=$_POST['__p1'];
+			}
+			else
+			{
+				$p1='';
+			}
+		}
+		else
+		{
+			$p1='';
+		}
+
+
+        if(isset($_POST['__p2'])) 
+        {
+			if(strlen($_POST['__p2'])>0)
+			{
+				$sql=str_replace('__p2',$_POST['__p2'],$sql);			
+				$p2=$_POST['__p2'];
+			}
+			else
+			{
+				$p2='';
+			}
+		}
+		else
+		{
+			$p2='';
+		}
+
+        if(isset($_POST['__p3'])) 
+        {
+			if(strlen($_POST['__p3'])>0)
+			{
+				$sql=str_replace('__p3',$_POST['__p3'],$sql);			
+				$p3=$_POST['__p3'];
+			}
+			else
+			{
+				$p3='';
+			}
+		}
+		else
+		{
+			$p3='';
+		}
+
+        if(isset($_POST['__p4'])) 
+        {
+			if(strlen($_POST['__p4'])>0)
+			{
+				$sql=str_replace('__p4',$_POST['__p4'],$sql);			
+				$p4=$_POST['__p4'];
+			}
+			else
+			{
+				$p4='';
+			}
+		}
+		else
+		{
+			$p4='';
+		}
+        //////////////
+		//echo $sql;
+
+
+        if(!$result=run_query($link,'research',$sql))
+        {
+			 echo '<h1>Problem</h1>';
+		}
+		 else
+		 {
+			 //echo '<h1>Success</h1>';
+		 }
+
+
+		export_data($result);
+}
+
+function export_data($result)
+{
+	    $fp = fopen('php://output', 'w');
+	    if ($fp && $result) 
+	    {
+		    header('Content-Type: text/csv');
+		    header('Content-Disposition: attachment; filename="export.csv"');
+		
+	    	$first='yes';
+		
+		   while ($row = get_single_row($result))
+		   {
+			    if($first=='yes')
+			    {
+				  fputcsv($fp, array_keys($row));
+				  $first='no';
+			    }
+			
+			fputcsv($fp, array_values($row));
+		  }
+	   }
+}
 
 ?>

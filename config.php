@@ -11,10 +11,10 @@ $GLOBALS['expirydate_field']='expirydate';
 
 //////Project specific globals
 $GLOBALS['required_srcm_reviewer']=3;
-$GLOBALS['required_ecm_reviewer']=3;
+$GLOBALS['required_ecm_reviewer']=2;
 $GLOBALS['recent_activity_refresh_period']=10000;
 $GLOBALS['recent_activity_data_count']=5;
-$GLOBALS['send_email']=0;
+$GLOBALS['send_email']=1;
 $GLOBALS['email_database_server']='11.207.1.1';
 $GLOBALS['proposal_type']=array(
 									'PG Dissertation',
@@ -50,12 +50,10 @@ $GLOBALS['Department_Type']=array(
 									'Anesthesiology',
 									'Biochemistry',
 									'Burns and Plastic Surgery',
-									'Cardiology',
 									'Community Medicine',
 									'Dentistry',
 									'Emergency Medicine',
 									'ENT',
-									'ENT-NPPCD',
 									'Forensic Medicine',
 									'General surgery',
 									'IHBT',
@@ -63,10 +61,7 @@ $GLOBALS['Department_Type']=array(
 									'Microbiology',
 									'Neurology',
 									'Neurosurgery',
-									'Obstetrics and Gynacology(NTMO)',
 									'Obstetrics and Gynecology',
-									'Obstetrics and Gynecology(MCHO)',
-									'Office of The Dean',
 									'Ophthalmology',
 									'Orthopedics',
 									'Paediatrics',
