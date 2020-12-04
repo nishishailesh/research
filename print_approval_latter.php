@@ -22,6 +22,7 @@ class ACCOUNT1 extends TCPDF {
 $proposal_id=$_POST['proposal_id'];
 $action=$_POST['action'];
 //print_r($_POST);
+//exit(0);
 //print_r($action);
 	$link=get_link($GLOBALS['main_user'],$GLOBALS['main_pass']);
 
@@ -30,46 +31,12 @@ $action=$_POST['action'];
 	$result=run_query($link,'research','select * from proposal where id=\''.$proposal_id.'\'');
 	$ar=get_single_row($result);
 	
+ob_start();
 	gate_approval_latter_pdf($link,$user_info,$ar,$action);
-	/*
-	echo "Following Proposal from following applicant is approved by EC, GMC,Surat"; 
-	my_print_r($user_info);
-	my_print_r($ar);
-			//echo '<table border="1">
-				 //<tr>
-					//<th colspan=10>EC Approval</th>
-				 //</tr>
-				 //</table>
-				 //<table>
-				 //<tr>
-					//<th>proposal id</th>
-					//<th>Applicant id/Name/Department</th>
-					//<th>Proposal</th>
-					//<th>DateTime</th>
-					//<th>Status</th>
-				 //</tr>';
-				 
-			//while($ar=get_single_row($result))
-			//{
-				//$user_info=get_user_info($link,$ar['applicant_id']);
-				//echo '<tr>
-						//<td>'.$ar['id'].'</td>
-						//<td>'.$ar['applicant_id'].''.$user_info['name'].''.$user_info['department'].'</td>
-						//<td>'.$ar['proposal_name'].'</td>
-						//<td>'.$ar['date_time'].'</td>
-						//<td>'.$ar['status'].'</td>
-				//</tr>';
-
-				
-			//}
-			//echo '</table>';
-	
-	
-	*/
   $myStr = ob_get_contents();
   ob_end_clean();
   
- // echo $myStr;
+ //echo $myStr;
  // exit(0);
     
 
@@ -84,6 +51,3 @@ $action=$_POST['action'];
 	    $pdf->Output('print_approval_latter.pdf', 'I');
 
 ?>
-
-
-

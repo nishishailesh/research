@@ -1,13 +1,13 @@
--- MySQL dump 10.16  Distrib 10.1.26-MariaDB, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.17  Distrib 10.3.23-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: research
 -- ------------------------------------------------------
--- Server version	10.1.26-MariaDB-0+deb9u1
+-- Server version	10.3.23-MariaDB-0+deb10u1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+/*!40101 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -45,11 +45,11 @@ CREATE TABLE `attachment` (
   `date_time` datetime NOT NULL,
   `attachment` mediumblob NOT NULL,
   `attachment_name` varchar(300) NOT NULL,
-  `forwarded` int(11) NOT NULL,
+  `forwarded` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`),
   CONSTRAINT `attachment_ibfk_1` FOREIGN KEY (`proposal_id`) REFERENCES `proposal` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2771 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=6195 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -63,16 +63,16 @@ CREATE TABLE `comment` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `proposal_id` int(11) NOT NULL,
   `reviewer_id` bigint(15) NOT NULL,
-  `comment` varchar(5000) NOT NULL,
-  `date_time` datetime NOT NULL,
-  `attachment` mediumblob NOT NULL,
-  `attachment_name` varchar(300) NOT NULL,
-  `forwarded` int(11) NOT NULL,
+  `comment` varchar(5000) DEFAULT NULL,
+  `date_time` datetime DEFAULT NULL,
+  `attachment` mediumblob DEFAULT NULL,
+  `attachment_name` varchar(300) DEFAULT NULL,
+  `forwarded` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`,`reviewer_id`),
   KEY `reviewer_id` (`reviewer_id`),
   CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`proposal_id`, `reviewer_id`) REFERENCES `decision` (`proposal_id`, `reviewer_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=4553 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=10707 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -85,7 +85,7 @@ DROP TABLE IF EXISTS `decision`;
 CREATE TABLE `decision` (
   `proposal_id` int(11) NOT NULL,
   `reviewer_id` bigint(15) NOT NULL,
-  `approval` int(11) NOT NULL,
+  `approval` int(11) DEFAULT NULL,
   PRIMARY KEY (`proposal_id`,`reviewer_id`),
   KEY `reviewer_id` (`reviewer_id`),
   CONSTRAINT `decision_ibfk_1` FOREIGN KEY (`proposal_id`) REFERENCES `proposal` (`id`) ON UPDATE CASCADE,
@@ -120,7 +120,7 @@ CREATE TABLE `email` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `email_content` varchar(10000) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=86 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -137,16 +137,16 @@ CREATE TABLE `proposal` (
   `type` varchar(20) NOT NULL,
   `date_time` datetime NOT NULL,
   `guide` varchar(50) NOT NULL,
-  `researcher_email_id` varchar(100) NOT NULL,
-  `researcher_mobile_no` bigint(15) NOT NULL,
-  `year` int(5) NOT NULL,
-  `Department` varchar(25) NOT NULL,
-  `status` enum('001.applied','010.srcm_assigned','020.srcm_approved','030.sent_to_ecms','040.ecm_assigned','060.sent_to_committee','070.ecms_approved') NOT NULL,
-  `forwarded` int(11) NOT NULL,
+  `researcher_email_id` varchar(100) DEFAULT NULL,
+  `researcher_mobile_no` bigint(15) DEFAULT NULL,
+  `year` int(5) DEFAULT NULL,
+  `Department` varchar(25) DEFAULT NULL,
+  `status` enum('001.applied','010.srcm_assigned','020.srcm_approved','030.sent_to_ecms','040.ecm_assigned','060.sent_to_committee','070.ecms_approved') DEFAULT NULL,
+  `forwarded` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `applicant_id` (`applicant_id`),
   CONSTRAINT `proposal_ibfk_1` FOREIGN KEY (`applicant_id`) REFERENCES `user` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=272 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=454 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -236,4 +236,4 @@ CREATE TABLE `view_info_data1` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-02-13 22:29:59
+-- Dump completed on 2020-12-04 12:55:02

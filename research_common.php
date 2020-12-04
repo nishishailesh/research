@@ -2023,27 +2023,11 @@ function print_approval_latter($link,$status,$action='none',$message='')
 }
 
 function gate_approval_latter_pdf($link,$user_info,$ar,$action)
-{
-	/*if ($user_info['subtype2']=='This Institute')
-	{
-	//echo'dxgxdfgxdfg';
-	   
-		
-		$add1='Govt. Medical College.';
-        $add2='Surat.';
-      //  echo $add1;
-	}
-	else
-	{
-		$add1=' ';
-		$add2=' ';
-		
-	}*/
-	
+{	
 echo'
-<table  width="100%" align="center">
+  <table  width="100%" align="center">
 	        <tr>
-	          <td  width="15%" height="100%"><img src="./img/gujarat.jpg" alt="gujarat" height="100"> </td>
+	          <td  width="15%" height="100%"><img src="./img/gujarat.jpg" alt="gujarat" height="100"></td>
 	          <td width="70%" height="100%">
 	           <table >
 	            <tr height="50%" width="100%">
@@ -2058,7 +2042,7 @@ echo'
 	            </tr>
 	            <tr height="25%" width="80%">
 	               <td >
-	                    Government Medical College
+	                    <b>Government Medical College</b>
 	                </td>
 	             </tr>
 	             <tr height="25%" width="80%">
@@ -2074,149 +2058,170 @@ echo'
 	      <table width="100%" ><tr><td><img src="./img/border.png" alt="border" height="5" width="700"></td></tr></table>
 	      <table width="100%" height="10%">
 	      <tr>
-	      <td  width="60%">No.GMCS/STU/ETHICS/Approval/&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;/19</td><td  width="39%"  align="right">Date:- &nbsp; &nbsp; &nbsp; &nbsp;/  &nbsp; &nbsp;&nbsp;&nbsp;  /2019</td>
+	      <td  width="60%">No.GMCS/STU/ETHICS/Approval/'.$_POST['letter_no'].'&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td><td  width="39%"  align="right">
+	      Date:-  '.date("d-m-Y",strtotime($_POST['letter_date'])).'</td>
 	      </tr>
-	      </table>
-	      <pre></pre>
-	     <table>
-	     <tr><td>To,</td></tr>
-	      <tr><td> '. $user_info['name'].' </td></tr>
-	      <tr><td>Department of '. $user_info['department'].'</td></tr>
-	      <tr><td>'.$user_info['Institute'].'</td></tr>
-	      <tr><td> </td></tr>
-	      <tr><td> </td></tr>
-	      <tr><td>';
+	      </table>';
 	      if($action=='print1')
+	      {
+		    echo'<br><br><table align="center"><tr><td><H3>REPORT OF ETHICS COMMITTEE</H3></td></tr></table>';
+		    echo'<table border="1" ><tr width="100%"><th width="40%"><b>&nbsp; Department</b></th><td width="60%">&nbsp; '.$user_info['department'].'</td></tr>
+		                        <tr><th><b>&nbsp; Candidate admitted year</b></th><td>&nbsp; '.$ar['year'].'</td></tr>
+		                        <tr><th><b>&nbsp; Subject</b></th><td>&nbsp; '.$user_info['department'].'</td></tr>
+		                        <tr><th><b>&nbsp; College Name & Address</b></th><td>&nbsp; '.$user_info['Institute'].'</td></tr>
+		                  </table>';
+		
+	      }
+	      else if($action=='print3')
+	      {
+		    echo'<br><br><table align="center"><tr><td><H3>REPORT OF ETHICS COMMITTEE</H3></td></tr></table>';
+		    echo'<table border="1" ><tr width="100%"><th width="40%"><b>&nbsp; Department</b></th><td width="60%">&nbsp; '.$user_info['department'].'</td></tr>
+		                        <tr><th><b>&nbsp; Candidate admitted year</b></th><td>&nbsp; '.$ar['year'].'</td></tr>
+		                        <tr><th><b>&nbsp; Subject</b></th><td>&nbsp; '.$user_info['department'].'</td></tr>
+		                        <tr><th><b>&nbsp; College Name & Address</b></th><td>&nbsp; '.$user_info['Institute'].'</td></tr>
+		                  </table>';
+		
+
+	      }  
+	    echo'<pre></pre>
+	     <table>
+	     <tr><td><b>To,</b></td></tr>
+	      <tr><td><b>'. $ar['guide'].' </b></td></tr>
+	      <tr><td><b>Department of '. $user_info['department'].',</b></td></tr>
+	      <tr><td><b>'.$user_info['Institute'].'.</b></td></tr>
+	      <tr><td><b> </b></td></tr>
+	      <tr><td> </td></tr>
+	      </table>';
+	      
+	    if($action=='print1')
 	    {
-			echo' <table><tr><td> &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Sub:- Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
 			
-			
+			echo' <table><tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Sub:-</b></td><td width="80%"> Research Proposal Entitled," '.$ar['proposal_name'].'. "</td></tr></table>';
+			echo' <table><tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Ref:-</b></td><td width="50%"> Online HREC Protocol No. '.$ar['id'].'</td><td width="30%">Date:- '. date("d-m-Y",strtotime($ar['date_time'])).'</td></tr></table>';
+		    echo' <br><br><table><tr><td>Dear <b>'. $ar['guide'].',</b></td></tr></table>';
+
+		    echo' <br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; The above mentioned research proposal of <b>'.$ar['guide'].'</b>, Entitled,<b> " '.$ar['proposal_name'].' " </b> was discussed in the Ethics Committee meeting held on '.date("d-m-Y",strtotime($_POST['meeting_date'])).' at our College.</td></tr></table>';
+			echo'<br><br><table>
+				<tr>
+					<td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Ethics Committee has unanimously approved your Title & Synopsis of Dissertation. This work will be done under the guidance and supervision of your guide, <b>'.$user_info['name'].'</b></td></tr>
+				</table>';
 		}
 	    else if($action=='print2')
 	    {
-			echo' <table><tr><td> &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Sub:- Provisional Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
-			
-			
-		}
-	     else if($action=='print3')
-	    {
-			echo' <table><tr><td> &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Sub:- Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
-			
-			
-		}
-	      
-	      
-	     echo' </td></tr>
-	      </table>
-	       <pre></pre>
-	     <table>
-	     <tr><td>Dear, '. $user_info['name'].'</td><td></td></tr>
-	     </table>
-	      <pre></pre>';
-	    if($action=='print1')
-	    {
-			echo' <table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC, in its meeting on  '. substr($ar['date_time'],0,10).'    had discussed the research Proposal Submitted by you. (Proposal No.'. $ar['id'].'    ) </td></tr></table>';
-			
-			
-		}
-	    else if($action=='print2')
-	    {
-			echo' <table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC, in its meeting on '. substr($ar['date_time'],0,10).' had discussed the research Proposal Submitted by you.
-			 The committee has decided to give provisional approval to your Proposal.(Proposal No.'. $ar['id'].'    )  </td></tr></table>';
-			
-			
-		}
-	     else if($action=='print3')
-	    {
-			echo' <table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC, in its meeting on  '. substr($ar['date_time'],0,10).'    had discussed the research Proposal Submitted by you. The committee has decided to give provisional approval to your Proposal. (Proposal No.'. $ar['id'].'    ) </td></tr></table>';
-			
-			
-		}
-	      
-	    echo ' <table>
-	    
-	      <pre></pre>
-	     <table>
-	     <tr><td> &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;Title:- " '.$ar['proposal_name'].'" </td></tr></table>
-	     <pre></pre>';
-	    
-	    
-	    if($action=='print1')
-	    {
-		echo '	
-		<table>
-    	 <tr>
-    	        <td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The committee members raised certain points,for which
-    	         you Submitted the answers to these; which are satisfactory hence, the Study is approved with following conditions.</td></tr>
-    	</table>
-    	<table>
-    	 <tr>
-    	       <td width="4%"> 1) </td><td width="95%">All serious adverse effects/outcome are to be reported to the HREC, in  
-                    writing, in 24 hrs from the time of occurrence.</td>
-    	 </tr>
-    	</table>
-    	<table>
-    	 <tr>
-    	      <td width="4%">2)</td><td width="95%">Annual Progress report and end of Study report to be submitted to HREC. </td>
-    	 </tr>
-    	</table>';
-	  }
-	  else if($action=='print2')
-	  {
-		  
-		echo'  <table>
+			echo' <table><tr><td> &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Sub:-</b>Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
+			 echo'<br><br> <table><tr><td>Dear <b>'. $ar['guide'].',</b></td></tr></table>';
+			echo' <br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC, in its meeting on <b>'. date("d-m-Y",strtotime($ar['date_time'])).' </b> had discussed the research Proposal Submitted by you.
+			 The committee has decided to give approval to your Proposal.( Protocol No.'. $ar['id'].'    )  </td></tr></table>';	
+		    echo'<br><br>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b> " '.$ar['proposal_name'].' "</b>';
+		 echo' <br><br><table>
     	  <tr>
-    	     <td>The study was provisionally approved with following conditions. </td>
+    	     <td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;The study was approved with following conditions. </td>
     	  </tr>
     	  </table>
     	  <table>
     	  <tr>
-    	     <td width="4%">1) </td><td width="95%">Permission for GSACS/NACO for Data usage should be obtained and a copy submitted to HREC before initiating the study.</td>
+    	     <td width="8%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;1) </td><td width="90%">End of study report to be submitted to HREC.</td>
     	  </tr>
     	  </table>
     	  <table>
     	  <tr>
-    	     <td width="4%">2) </td><td width="95%">Annual Progress report and end of Study report to be submitted to HREC. </td>
+    	     <td width="8%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;2) </td><td width="90%">Publication should be notified to HREC. </td>
     	  </tr>
     	  </table>';
-		  
-		  
-		  
-	  }
-	  else if($action=='print3')
-	  {
-		  
-		 echo'<table>
-    	  <tr>
-    	     <td>&nbsp;&nbsp;&nbsp;&nbsp;The study was approved with following conditions. </td>
-    	  </tr>
-    	  </table>
-    	  <table>
-    	  <tr>
-    	     <td>&nbsp;&nbsp;&nbsp;&nbsp;1)  End of study report to be submitted to HREC. </td>
-    	  </tr>
-    	  </table>
-    	  <table>
-    	  <tr>
-    	     <td>&nbsp;&nbsp;&nbsp;&nbsp;2) Publication should be notified to HREC.	  </td>
-    	  </tr>
-    	  </table>';
-		  
-		  
-		  
-	  }
-	  
-	echo' <pre></pre><pre></pre><pre></pre>
-	<table  width="35%">
-	<tr align="center"><td>Dean</td></tr>
-<tr align="center"><td>Govt. Medical College</td></tr>
-<tr align="center"><td>Surat.</td></tr>
-</table>
-';
+	    }
+	 else if($action=='print3')
+	    {
+			echo'
+			<table ><tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Sub:-  </b></td><td width="80%"> Research Proposal Entitled,<b> "'.$ar['proposal_name'].'."</b></td></tr></table>
+                  <br><table>
+			          <tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Ref:-  </b></td><td width="60%">(1):- No.MCS/online EC-Protocol No.'. $ar['id'].'</td><td width="20%">Date: '. date("d-m-Y",strtotime($ar['date_time'])).' </td></tr>
+			          <tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;</td><td width="60%">(2):-Provisional approval letter No.MCS/STU/Ethics/'.$_POST['provisional_no'].'</td><td width="20%">Date: '.date("d-m-Y",strtotime($_POST['provisional_date'])).'</td></tr>
+			      </table>';
+			   echo' <br><br><table><tr><td>Dear <b>'. $ar['guide'].',</b></td></tr></table>';
+			  echo'<br><br><table >
+						<tr>
+							<td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+									The above mentioned research proposal of <b>'. $ar['guide'].' </b> Entitled,  <b>"
+									'.$ar['proposal_name'].' "</b> was discussed in the Ethics Committee 
+									  meeting held on '.date("d-m-Y",strtotime($_POST['meeting_date'])).' at our College. 
+							</td>
+						</tr>
+
+						<tr>
+							<td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; 
+							     Ethics Commitee has unanimously approved your Title & Synopsis of Dissertation.
+								 	
+							</td>
+						</tr>
+						<tr>
+							<td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; 
+								This work will be done under the guidance and supervision of guide, <b>'.$user_info['name'].'</b>
+							</td>
+						</tr>
+						<tr>
+						     <td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; 
+						          The committee had given provisional approval for the study on '.date("d-m-Y",strtotime($_POST['provisional_date'])).' 
+						     </td>
+						</tr>
+						<tr>
+						     <td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; 
+						          The Study is approved by Gujarat State AIDS Control Society/NACO.( GSACS approval letter no. '.$_POST['gsacs_no'].', Date: '.date("d-m-Y",strtotime($_POST['gsacs_date'])).' )
+						     </td>
+						</tr>
+						<tr>
+						     <td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp;
+						          The Committee has decided to give approval to your Proposal.
+						     </td>
+						</tr>
+
+					</table>';
+		}
+		else if($action=='print4')
+	    {
+			echo'<table><tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Sub:-</b></td><td width="80%"> Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
+			echo'<br><br><table><tr><td>Dear <b>'. $ar['guide'].',</b></td></tr></table>';
+		     echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC,in its meeting on '.date("d-m-Y",strtotime($_POST['meeting_date'])).' had discussed the Research Proposal Submitted by you.The committee had decided to give provisional approval to your Proposal. ( Protocol No.'. $ar['id'].' )</td></tr></table>';			
+		     echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>"'.$ar['proposal_name'].'"</b></td></tr></table>';			
+		     echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The study has been approved by Gujarat State AIDS Control Society.</td></tr></table>';			
+		     echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;You  have  submitted  the  copy  of  Permission  from  GSACS No. GSACS/M&E/Research/'.$_POST['gsacs_no'].'   dated '.date("d-m-Y",strtotime($_POST['gsacs_date'])).'.</td></tr></table>';			
+		     echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;You are here by permitted to carry out the study as per conditions motioned in permission for GSACS Letter.</td></tr></table>';			
+
+		}
+		else if($action=='print5')
+	    {
+			echo'<table><tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Sub:-</b></td><td width="80%"> Provisional Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
+			echo'<br><br><table><tr><td>Dear <b>'. $ar['guide'].',</b></td></tr></table>';
+			echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC,in its meeting on date  '.date("d-m-Y",strtotime($_POST['meeting_date'])).' had discussed the research Proposal Submitted by you,(Online Protocol No.'. $ar['id'].')</td></tr></table>';			
+		    echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>"'.$ar['proposal_name'].'"</b></td></tr></table>';			
+			echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The committee has decided to give provisional approval to your Proposal.</td></tr></table>';			
+		    echo'<br><br><table><tr><td>The study is Provisionally approved with following conditions.</td></tr></table>';			
+		    echo'<br><br><table><tr width="100%"><td width="8%">&nbsp;&nbsp;&nbsp; &nbsp;1)</td><td width="90%">Permission from GSACS/NACO for Data usage should be obtained and a copy should be submitted to HREC before initiating the study.</td></tr></table>';			
+		    echo'<br><br><table><tr width="100%"><td width="8%">&nbsp;&nbsp;&nbsp; &nbsp;2)</td><td width="90%">Annual Progress report and end of study report to be submitted to HREC.</td></tr></table>';			
+		    echo'<br><br><table><tr width="100%"><td width="8%">&nbsp;&nbsp;&nbsp; &nbsp;3)</td><td width="90%">Publication should be Notified to HREC.</td></tr></table>';			
+
+		}
+		else if($action=='print6')
+	    {
+			echo'<table><tr width="100%"><td align="right" width="20%">&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>Sub:-</b></td><td width="80%"> Provisional Approval of Research Proposal Submitted by you to HREC.</td></tr></table>';
+			echo'<br><br><table><tr><td>Dear <b>'. $ar['guide'].',</b></td></tr></table>';
+			echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The HREC,in its meeting on date '.date("d-m-Y",strtotime($_POST['meeting_date'])).' had discussed the research Proposal Submitted by you,(Online Protocol No.'. $ar['id'].')</td></tr></table>';			
+		    echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;<b>"'.$ar['proposal_name'].'"</b></td></tr></table>';			
+			echo'<br><br><table><tr><td>&nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;The committee has decided to give provisional approval to your Proposal.</td></tr></table>';			
+		    echo'<br><br><table><tr><td>The study is Provisionally approved with following conditions.</td></tr></table>';			
+		    echo'<br><br><table><tr width="100%"><td width="8%">&nbsp;&nbsp;&nbsp; &nbsp;1)</td><td width="90%">Permission from GSACS/NACO for Data usage should be obtained and a copy should be submitted to HREC before initiating the study.</td></tr></table>';			
+		    echo'<br><br><table><tr width="100%"><td width="8%">&nbsp;&nbsp;&nbsp; &nbsp;2)</td><td width="90%">Annual Progress report and end of study report to be submitted to HREC.</td></tr></table>';			
+		    echo'<br><br><table><tr width="100%"><td width="8%">&nbsp;&nbsp;&nbsp; &nbsp;3)</td><td width="90%">Publication should be Notified to HREC.</td></tr></table>';			
+
+		}
+		
+	echo'<pre></pre><pre></pre>
+	<table>
+	<tr align="center" width="100%"><td width="55%"></td><td width="45%"><b>Chairperson /Member secretary</b></td></tr>
+	<tr align="center" width="100%"><td width="55%"></td><td width="45%">Human Research Ethics Committee</td></tr>
+<tr align="center" width="100%"><td width="55%"></td ><td width="45%">Govt. Medical College,</td></tr>
+<tr align="center" width="100%"><td width="55%"></td><td width="45%">Surat.</td></tr>
+</table>';
 }
-
-
-
 
 function list_application_status_for_ecms_final($link,$status)
 {
