@@ -1,8 +1,8 @@
--- MySQL dump 10.17  Distrib 10.3.23-MariaDB, for debian-linux-gnu (x86_64)
+-- MySQL dump 10.18  Distrib 10.3.27-MariaDB, for debian-linux-gnu (x86_64)
 --
 -- Host: localhost    Database: research
 -- ------------------------------------------------------
--- Server version	10.3.23-MariaDB-0+deb10u1
+-- Server version	10.3.27-MariaDB-0+deb10u1
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
@@ -49,7 +49,7 @@ CREATE TABLE `attachment` (
   PRIMARY KEY (`id`),
   KEY `proposal_id` (`proposal_id`),
   CONSTRAINT `attachment_ibfk_1` FOREIGN KEY (`proposal_id`) REFERENCES `proposal` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=6195 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=8243 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -72,7 +72,7 @@ CREATE TABLE `comment` (
   KEY `proposal_id` (`proposal_id`,`reviewer_id`),
   KEY `reviewer_id` (`reviewer_id`),
   CONSTRAINT `comment_ibfk_1` FOREIGN KEY (`proposal_id`, `reviewer_id`) REFERENCES `decision` (`proposal_id`, `reviewer_id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=10707 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=14659 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -146,7 +146,7 @@ CREATE TABLE `proposal` (
   PRIMARY KEY (`id`),
   KEY `applicant_id` (`applicant_id`),
   CONSTRAINT `proposal_ibfk_1` FOREIGN KEY (`applicant_id`) REFERENCES `user` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=454 DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB AUTO_INCREMENT=574 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -158,16 +158,16 @@ DROP TABLE IF EXISTS `user`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `user` (
   `id` bigint(15) NOT NULL,
-  `name` varchar(50) NOT NULL,
-  `password` varchar(100) NOT NULL,
-  `expirydate` date NOT NULL,
-  `type` enum('researcher','srcms','srcm','ecms','ecm') NOT NULL,
-  `subtype` enum('','UG','PG','Faculty','Intern','PHD') NOT NULL,
-  `Institute` varchar(50) NOT NULL,
-  `year_of_admission` int(11) DEFAULT NULL,
-  `department` enum('N/A','Anatomy','Anesthesiology','Biochemistry','Burns and Plastic Surgery','Cardiology','Community Medicine','Dentistry','Dermatology','Emergency Medicine','Forensic Medicine','General Surgery','Immunohematology and Blood Transfusion','Infectious Disease','Medicine','Microbiology','Nephrology','Neurology','Neurosurgery','Obstetrics and Gynacology','Opthalmology','Orthopaedics','Otorhinolaryngiology','Paediatrics','Pathology','Peadiatric Surgery','Pharmacology','Physiology','Psychiatry','Pulmonary Medicine','Radiology','Radiotherapy','Urology','PSM','ENT','Other') NOT NULL,
-  `email` varchar(100) NOT NULL,
-  `mobile` varchar(50) NOT NULL,
+  `name` varchar(50) DEFAULT NULL,
+  `password` varchar(100) DEFAULT NULL,
+  `expirydate` date DEFAULT NULL,
+  `type` enum('researcher','srcms','srcm','ecms','ecm') DEFAULT NULL,
+  `subtype` enum('','UG','PG','Faculty','Intern','PHD') DEFAULT NULL,
+  `Institute` varchar(50) DEFAULT NULL,
+  `year_of_admission` varchar(4) DEFAULT NULL,
+  `department` enum('N/A','Anatomy','Anesthesiology','Biochemistry','Burns and Plastic Surgery','Cardiology','Community Medicine','Dentistry','Dermatology','Emergency Medicine','Forensic Medicine','General Surgery','Immunohematology and Blood Transfusion','Infectious Disease','Medicine','Microbiology','Nephrology','Neurology','Neurosurgery','Obstetrics and Gynacology','Opthalmology','Orthopaedics','Otorhinolaryngiology','Paediatrics','Pathology','Peadiatric Surgery','Pharmacology','Physiology','Psychiatry','Pulmonary Medicine','Radiology','Radiotherapy','Urology','PSM','ENT','Other') DEFAULT NULL,
+  `email` varchar(100) DEFAULT NULL,
+  `mobile` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -236,4 +236,4 @@ CREATE TABLE `view_info_data1` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2020-12-04 12:58:30
+-- Dump completed on 2021-08-02 11:33:38

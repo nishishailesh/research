@@ -15,7 +15,7 @@ $GLOBALS['required_ecm_reviewer']=2;
 $GLOBALS['recent_activity_refresh_period']=10000;
 $GLOBALS['recent_activity_data_count']=5;
 $GLOBALS['send_email']=1;
-$GLOBALS['email_database_server']='11.207.1.1';
+$GLOBALS['email_database_server']='11.207.1.2';
 $GLOBALS['proposal_type']=array(
 									'PG Dissertation',
 									'ICMR STS',
